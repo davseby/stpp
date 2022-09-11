@@ -62,7 +62,7 @@ func (s *Server) CreateProduct(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) UpdateProduct(w http.ResponseWriter, r *http.Request) {
-	id, ok := extractContextUserID(r)
+	pid, ok := extractPathID(r, "productId")
 	if !ok {
 		s.log.Error("extracting context user id data")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -82,7 +82,7 @@ func (s *Server) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = db.UpdateProductByID(r.Context(), s.db, id, pc)
+	err = db.UpdateProductByID(r.Context(), s.db, pid, pc)
 	switch err {
 	case nil:
 		// OK.
@@ -95,7 +95,7 @@ func (s *Server) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	product, err := db.GetProductByID(r.Context(), s.db, id)
+	product, err := db.GetProductByID(r.Context(), s.db, pid)
 	switch err {
 	case nil:
 		// OK.
@@ -103,7 +103,8 @@ func (s *Server) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	case db.ErrNotFound:
-		w.WriteHeader(http.StatusNotFound)
+		s.log.WithError(err).Error("fetching product by id after its update")
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	default:
 		s.log.WithError(err).Error("fetching product by id")
@@ -114,13 +115,13 @@ func (s *Server) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	s.respondJSON(w, product)
 }
 func (s *Server) DeleteProduct(w http.ResponseWriter, r *http.Request) {
-	id, ok := extractPathID(r)
+	pid, ok := extractPathID(r, "productId")
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	err := db.DeleteProductByID(r.Context(), s.db, id)
+	err := db.DeleteProductByID(r.Context(), s.db, pid)
 	switch err {
 	case nil:
 		// OK.
@@ -137,13 +138,13 @@ func (s *Server) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetProduct(w http.ResponseWriter, r *http.Request) {
-	id, ok := extractPathID(r)
+	pid, ok := extractPathID(r, "productId")
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	product, err := db.GetProductByID(r.Context(), s.db, id)
+	product, err := db.GetProductByID(r.Context(), s.db, pid)
 	switch err {
 	case nil:
 		// OK.
@@ -152,6 +153,7 @@ func (s *Server) GetProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	case db.ErrNotFound:
 		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("product"))
 		return
 	default:
 		s.log.WithError(err).Error("fetching product by id")

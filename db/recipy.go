@@ -86,7 +86,7 @@ func InsertRecipy(
 			rp,
 		); err != nil {
 			if merr, ok := err.(*mysql.MySQLError); ok && merr.Number == 1452 {
-				return nil, core.ErrInvalidProduct
+				return nil, ErrNotFound
 			}
 
 			return nil, err
@@ -125,7 +125,7 @@ func UpdateRecipyByID(
 			recipyProduct,
 		); err != nil {
 			if merr, ok := err.(*mysql.MySQLError); ok && merr.Number == 1452 {
-				return core.ErrInvalidProduct
+				return ErrNotFound
 			}
 
 			return err

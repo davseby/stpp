@@ -59,9 +59,9 @@ func (s *Server) CreateRecipy(w http.ResponseWriter, r *http.Request) {
 	case r.Context().Err():
 		w.WriteHeader(http.StatusBadRequest)
 		return
-	case core.ErrInvalidProduct:
+	case db.ErrNotFound:
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+		w.Write([]byte("product"))
 		return
 	default:
 		s.log.WithError(err).Error("creating a new recipy")
@@ -73,7 +73,7 @@ func (s *Server) CreateRecipy(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) UpdateRecipy(w http.ResponseWriter, r *http.Request) {
-	id, ok := extractPathID(r)
+	rid, ok := extractPathID(r, "recipyId")
 	if !ok {
 		s.log.Error("extracting context user id data")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -93,7 +93,7 @@ func (s *Server) UpdateRecipy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	recipy, err := db.GetRecipyByID(r.Context(), s.db, id)
+	recipy, err := db.GetRecipyByID(r.Context(), s.db, rid)
 	switch err {
 	case nil:
 		// OK.
@@ -102,6 +102,7 @@ func (s *Server) UpdateRecipy(w http.ResponseWriter, r *http.Request) {
 		return
 	case db.ErrNotFound:
 		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("recipy"))
 		return
 	default:
 		s.log.WithError(err).Error("fetching recipy by id")
@@ -127,24 +128,7 @@ func (s *Server) UpdateRecipy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = db.UpdateRecipyByID(r.Context(), s.db, id, rc)
-	switch err {
-	case nil:
-		// OK.
-	case r.Context().Err():
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	case core.ErrInvalidProduct:
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
-		return
-	default:
-		s.log.WithError(err).Error("creating a new recipy")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	recipy, err = db.GetRecipyByID(r.Context(), s.db, id)
+	err = db.UpdateRecipyByID(r.Context(), s.db, rid, rc)
 	switch err {
 	case nil:
 		// OK.
@@ -152,7 +136,26 @@ func (s *Server) UpdateRecipy(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	case db.ErrNotFound:
-		w.WriteHeader(http.StatusNotFound)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("product"))
+		return
+	default:
+		s.log.WithError(err).Error("creating a new recipy")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	recipy, err = db.GetRecipyByID(r.Context(), s.db, rid)
+	switch err {
+	case nil:
+		// OK.
+	case r.Context().Err():
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	case db.ErrNotFound:
+		s.log.WithError(err).Error("fetching recipy by id after its update")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("recipy"))
 		return
 	default:
 		s.log.WithError(err).Error("fetching recipy by id")
@@ -164,7 +167,7 @@ func (s *Server) UpdateRecipy(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) DeleteRecipy(w http.ResponseWriter, r *http.Request) {
-	id, ok := extractPathID(r)
+	rid, ok := extractPathID(r, "recipyId")
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -185,7 +188,7 @@ func (s *Server) DeleteRecipy(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		recipy, err := db.GetRecipyByID(r.Context(), s.db, id)
+		recipy, err := db.GetRecipyByID(r.Context(), s.db, rid)
 		switch err {
 		case nil:
 			// OK.
@@ -194,6 +197,7 @@ func (s *Server) DeleteRecipy(w http.ResponseWriter, r *http.Request) {
 			return
 		case db.ErrNotFound:
 			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("recipy"))
 			return
 		default:
 			s.log.WithError(err).Error("fetching recipy by id")
@@ -207,7 +211,7 @@ func (s *Server) DeleteRecipy(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err := db.DeleteRecipyByID(r.Context(), s.db, id)
+	err := db.DeleteRecipyByID(r.Context(), s.db, rid)
 	switch err {
 	case nil:
 		// OK.
@@ -224,13 +228,13 @@ func (s *Server) DeleteRecipy(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetRecipy(w http.ResponseWriter, r *http.Request) {
-	id, ok := extractPathID(r)
+	rid, ok := extractPathID(r, "recipyId")
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	recipy, err := db.GetRecipyByID(r.Context(), s.db, id)
+	recipy, err := db.GetRecipyByID(r.Context(), s.db, rid)
 	switch err {
 	case nil:
 		// OK.
@@ -239,6 +243,7 @@ func (s *Server) GetRecipy(w http.ResponseWriter, r *http.Request) {
 		return
 	case db.ErrNotFound:
 		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("recipy"))
 		return
 	default:
 		s.log.WithError(err).Error("fetching recipy by id")

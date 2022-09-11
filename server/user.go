@@ -110,6 +110,7 @@ func (s *Server) Login(w http.ResponseWriter, r *http.Request) {
 		// OK.
 	case r.Context().Err(), db.ErrNotFound:
 		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("user"))
 		return
 	default:
 		s.log.WithError(err).Error("fetching user by name")
@@ -165,13 +166,13 @@ func (s *Server) GetUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
-	id, ok := extractPathID(r)
+	uid, ok := extractPathID(r, "userId")
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	user, err := db.GetUserByID(r.Context(), s.db, id)
+	user, err := db.GetUserByID(r.Context(), s.db, uid)
 	switch err {
 	case nil:
 		// OK.
@@ -180,6 +181,7 @@ func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	case db.ErrNotFound:
 		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("user"))
 		return
 	default:
 		s.log.WithError(err).Error("fetching user by id")
@@ -191,7 +193,7 @@ func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
-	id, ok := extractContextUserID(r)
+	uid, ok := extractContextUserID(r)
 	if !ok {
 		s.log.Error("extracting context user id data")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -215,7 +217,7 @@ func (s *Server) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := db.GetUserByID(r.Context(), s.db, id)
+	user, err := db.GetUserByID(r.Context(), s.db, uid)
 	switch err {
 	case nil:
 		// OK.
@@ -255,7 +257,7 @@ func (s *Server) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = db.UpdateUserPasswordByID(r.Context(), s.db, id, ph)
+	err = db.UpdateUserPasswordByID(r.Context(), s.db, uid, ph)
 	switch err {
 	case nil:
 		// OK.
@@ -321,19 +323,19 @@ func (s *Server) CreateAdminUser(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) DeleteUser(super bool) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var id xid.ID
+		var uid xid.ID
 
 		var ok bool
 
 		if !super {
-			id, ok = extractContextUserID(r)
+			uid, ok = extractContextUserID(r)
 			if !ok {
 				s.log.Error("extracting context user id data")
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 		} else {
-			id, ok = extractPathID(r)
+			uid, ok = extractPathID(r, "userId")
 			if !ok {
 				w.WriteHeader(http.StatusBadRequest)
 				return
@@ -348,7 +350,7 @@ func (s *Server) DeleteUser(super bool) func(http.ResponseWriter, *http.Request)
 		}
 
 		if admin {
-			user, err := db.GetUserByID(r.Context(), s.db, id)
+			user, err := db.GetUserByID(r.Context(), s.db, uid)
 			switch err {
 			case nil:
 				// OK.
@@ -357,6 +359,7 @@ func (s *Server) DeleteUser(super bool) func(http.ResponseWriter, *http.Request)
 				return
 			case db.ErrNotFound:
 				w.WriteHeader(http.StatusNotFound)
+				w.Write([]byte("user"))
 				return
 			default:
 				s.log.WithError(err).Error("fetching user by id")
@@ -371,7 +374,7 @@ func (s *Server) DeleteUser(super bool) func(http.ResponseWriter, *http.Request)
 			}
 		}
 
-		err := db.DeleteUserByID(r.Context(), s.db, id)
+		err := db.DeleteUserByID(r.Context(), s.db, uid)
 		switch err {
 		case nil:
 			// OK.

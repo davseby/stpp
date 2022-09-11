@@ -40,7 +40,7 @@ CREATE TABLE `rating` (
 	`recipy_id` VARCHAR(20) NOT NULL,
 	`user_id` VARCHAR(20) NOT NULL,
 	`score` INTEGER(4) NOT NULL DEFAULT 10,
-	`description` VARCHAR(511) NOT NULL,
+	`comment` VARCHAR(511) NOT NULL,
 	PRIMARY KEY (`id`),
 	CONSTRAINT `recipy_fk2` FOREIGN KEY (`recipy_id`) REFERENCES `recipy` (`id`) ON DELETE CASCADE,
 	CONSTRAINT `user_fk2` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE

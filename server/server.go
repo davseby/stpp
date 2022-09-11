@@ -60,37 +60,39 @@ func (s *Server) router() chi.Router {
 
 	r.Route("/products", func(sr chi.Router) {
 		sr.Get("/", s.GetProducts)
-		sr.Get("/{id}", s.GetProduct)
+		sr.Get("/{productId}", s.GetProduct)
 
 		sr.Group(func(ssr chi.Router) {
 			ssr.Use(s.authorize(true))
 			ssr.Post("/", s.CreateProduct)
-			ssr.Patch("/{id}", s.UpdateProduct)
-			ssr.Delete("/{id}", s.DeleteProduct)
+			ssr.Patch("/{productId}", s.UpdateProduct)
+			ssr.Delete("/{productId}", s.DeleteProduct)
 		})
 	})
 
 	r.Route("/recipies", func(sr chi.Router) {
 		sr.Get("/", s.GetRecipies)
-		sr.Get("/{id}", s.GetRecipy)
+
+		sr.Route("/{recipyId}", func(ssr chi.Router) {
+			ssr.Get("/", s.GetRecipy)
+			ssr.Route("/ratings", func(sssr chi.Router) {
+				sssr.Get("/", s.GetRatings)
+				sssr.Get("/{ratingId}", s.GetRating)
+
+				sssr.Group(func(ssssr chi.Router) {
+					ssssr.Use(s.authorize(false))
+					ssssr.Post("/", s.CreateRating)
+					ssssr.Patch("/{ratingId}", s.UpdateRating)
+					ssssr.Delete("/{ratingId}", s.DeleteRating)
+				})
+			})
+		})
 
 		sr.Group(func(ssr chi.Router) {
 			ssr.Use(s.authorize(false))
 			ssr.Post("/", s.CreateRecipy)
-			ssr.Patch("/{id}", s.UpdateRecipy)
-			ssr.Delete("/{id}", s.DeleteRecipy)
-		})
-	})
-
-	r.Route("/ratings", func(sr chi.Router) {
-		sr.Get("/", nil)
-		sr.Get("/{id}", nil)
-
-		sr.Group(func(ssr chi.Router) {
-			ssr.Use(s.authorize(false))
-			ssr.Post("/", nil)
-			ssr.Patch("/{id}", nil)
-			ssr.Delete("/{id}", nil)
+			ssr.Patch("/{recipyId}", s.UpdateRecipy)
+			ssr.Delete("/{recipyId}", s.DeleteRecipy)
 		})
 	})
 
@@ -105,8 +107,8 @@ func (s *Server) router() chi.Router {
 			ssr.Use(s.authorize(true))
 			ssr.Get("/", s.GetUsers)
 			ssr.Post("/", s.CreateAdminUser)
-			ssr.Get("/{id}", s.GetUser)
-			ssr.Delete("/{id}", s.DeleteUser(true))
+			ssr.Get("/{userId}", s.GetUser)
+			ssr.Delete("/{userId}", s.DeleteUser(true))
 		})
 	})
 
@@ -184,8 +186,8 @@ func (s *Server) respondJSON(w http.ResponseWriter, obj any) {
 	}
 }
 
-func extractPathID(r *http.Request) (xid.ID, bool) {
-	sid := chi.URLParam(r, "id")
+func extractPathID(r *http.Request, key string) (xid.ID, bool) {
+	sid := chi.URLParam(r, key)
 	if sid == "" {
 		return xid.NilID(), false
 	}
