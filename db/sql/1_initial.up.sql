@@ -12,7 +12,7 @@ CREATE TABLE `product` (
 	`id` VARCHAR(20) NOT NULL,
 	`name` VARCHAR(255) NOT NULL,
 	`serving_type` VARCHAR(15) NOT NULL,
-	`serving_size` INTEGER NOT NULL,
+	`serving_size` DECIMAL(18, 4) NOT NULL,
 	`serving_calories` INTEGER NOT NULL,
 	PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -29,19 +29,18 @@ CREATE TABLE `recipy` (
 CREATE TABLE `recipy_product` (
 	`recipy_id` VARCHAR(20) NOT NULL,
 	`product_id` VARCHAR(20) NOT NULL,
-	`quantity` INTEGER NOT NULL,
+	`quantity` DECIMAL(18, 4) INTEGER NOT NULL,
 	PRIMARY KEY (`recipy_id`, `product_id`),
 	CONSTRAINT `recipy_fk1` FOREIGN KEY (`recipy_id`) REFERENCES `recipy` (`id`) ON DELETE CASCADE,
 	CONSTRAINT `product_fk1` FOREIGN KEY (`product_id`) REFERENCES `product` (`id`) ON DELETE CASCADE
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `rating` (
-	`id` VARCHAR(20) NOT NULL,
 	`recipy_id` VARCHAR(20) NOT NULL,
 	`user_id` VARCHAR(20) NOT NULL,
-	`score` INTEGER(4) NOT NULL DEFAULT 10,
+	`score` DECIMAL(2,2) NOT NULL,
 	`comment` VARCHAR(511) NOT NULL,
-	PRIMARY KEY (`id`),
+	PRIMARY KEY (`recipy_id`, `user_id`),
 	CONSTRAINT `recipy_fk2` FOREIGN KEY (`recipy_id`) REFERENCES `recipy` (`id`) ON DELETE CASCADE,
 	CONSTRAINT `user_fk2` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

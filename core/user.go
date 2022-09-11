@@ -27,7 +27,7 @@ type User struct {
 	ID           xid.ID `json:"id"`
 	Name         string `json:"name"`
 	PasswordHash []byte `json:"-"`
-	Admin        bool   `json:"-"`
+	Admin        bool   `json:"admin"`
 }
 
 type UserCore struct {

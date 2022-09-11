@@ -120,7 +120,6 @@ func selectProducts(
 	rows, err := squirrel.QueryContextWith(ctx, qc, dec(squirrel.
 		Select(
 			"product.id",
-			"product.admin_id",
 			"product.name",
 			"product.serving_type",
 			"product.serving_size",

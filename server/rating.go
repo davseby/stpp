@@ -8,8 +8,14 @@ import (
 	"net/http"
 )
 
-func (s *Server) GetRatings(w http.ResponseWriter, r *http.Request) {
-	ratings, err := db.GetRatings(r.Context(), s.db)
+func (s *Server) GetRecipyRatings(w http.ResponseWriter, r *http.Request) {
+	rid, ok := extractPathID(r, "recipyId")
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	ratings, err := db.GetRatings(r.Context(), s.db, rid)
 	switch err {
 	case nil:
 		// OK.
@@ -26,7 +32,7 @@ func (s *Server) GetRatings(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) CreateRating(w http.ResponseWriter, r *http.Request) {
-	rid, ok := extractPathID(r, "ratingId")
+	rid, ok := extractPathID(r, "recipyId")
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -65,6 +71,10 @@ func (s *Server) CreateRating(w http.ResponseWriter, r *http.Request) {
 	case r.Context().Err():
 		w.WriteHeader(http.StatusBadRequest)
 		return
+	case db.ErrDuplicate:
+		w.WriteHeader(http.StatusConflict)
+		w.Write([]byte("rating"))
+		return
 	case db.ErrNotFound:
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("recipy"))
@@ -79,7 +89,7 @@ func (s *Server) CreateRating(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) UpdateRating(w http.ResponseWriter, r *http.Request) {
-	rid, ok := extractPathID(r, "ratingId")
+	rid, ok := extractPathID(r, "recipyId")
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -105,7 +115,7 @@ func (s *Server) UpdateRating(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rating, err := db.GetRatingByID(r.Context(), s.db, rid)
+	rating, err := db.GetRating(r.Context(), s.db, rid, uid)
 	switch err {
 	case nil:
 		// OK.
@@ -122,12 +132,7 @@ func (s *Server) UpdateRating(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rating.UserID.Compare(uid) != 0 {
-		w.WriteHeader(http.StatusForbidden)
-		return
-	}
-
-	err = db.UpdateRatingByID(r.Context(), s.db, rid, rc)
+	err = db.UpdateRating(r.Context(), s.db, rid, uid, rc)
 	switch err {
 	case nil:
 		// OK.
@@ -140,7 +145,7 @@ func (s *Server) UpdateRating(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rating, err = db.GetRatingByID(r.Context(), s.db, rid)
+	rating, err = db.GetRating(r.Context(), s.db, rid, uid)
 	switch err {
 	case nil:
 		// OK.
@@ -160,7 +165,7 @@ func (s *Server) UpdateRating(w http.ResponseWriter, r *http.Request) {
 	s.respondJSON(w, rating)
 }
 func (s *Server) DeleteRating(w http.ResponseWriter, r *http.Request) {
-	rid, ok := extractPathID(r, "ratingId")
+	rid, ok := extractPathID(r, "recipyId")
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -173,7 +178,7 @@ func (s *Server) DeleteRating(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rating, err := db.GetRatingByID(r.Context(), s.db, rid)
+	_, err := db.GetRating(r.Context(), s.db, rid, uid)
 	switch err {
 	case nil:
 		// OK.
@@ -190,12 +195,7 @@ func (s *Server) DeleteRating(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rating.UserID.Compare(uid) != 0 {
-		w.WriteHeader(http.StatusForbidden)
-		return
-	}
-
-	err = db.DeleteRatingByID(r.Context(), s.db, rid)
+	err = db.DeleteRating(r.Context(), s.db, rid, uid)
 	switch err {
 	case nil:
 		// OK.
@@ -209,31 +209,4 @@ func (s *Server) DeleteRating(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
-}
-
-func (s *Server) GetRating(w http.ResponseWriter, r *http.Request) {
-	rid, ok := extractPathID(r, "ratingId")
-	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	rating, err := db.GetRatingByID(r.Context(), s.db, rid)
-	switch err {
-	case nil:
-		// OK.
-	case r.Context().Err():
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	case db.ErrNotFound:
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("recipy"))
-		return
-	default:
-		s.log.WithError(err).Error("fetching rating by id")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	s.respondJSON(w, rating)
 }

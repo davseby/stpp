@@ -80,6 +80,8 @@ func InsertRecipy(
 	}
 
 	for _, rp := range rc.Products {
+		rp.RecipyID = recipy.ID
+
 		if err := upsertRecipyProduct(
 			ctx,
 			tx,
@@ -113,41 +115,27 @@ func UpdateRecipyByID(
 	}
 	defer tx.Rollback()
 
-	oldRecipyProducts, err := getRecipyProductsByRecipyID(ctx, tx, id)
-	if err != nil {
+	if err := deleteRecipyProduct(
+		ctx,
+		tx,
+		id,
+	); err != nil {
 		return err
 	}
 
-	for _, recipyProduct := range rc.Products {
+	for _, rp := range rc.Products {
+		rp.RecipyID = id
+
 		if err := upsertRecipyProduct(
 			ctx,
 			tx,
-			recipyProduct,
+			rp,
 		); err != nil {
 			if merr, ok := err.(*mysql.MySQLError); ok && merr.Number == 1452 {
 				return ErrNotFound
 			}
 
 			return err
-		}
-	}
-
-	for _, oldRecipyProduct := range oldRecipyProducts {
-		var found bool
-		for _, recipyProduct := range rc.Products {
-			if recipyProduct.ProductID.Compare(oldRecipyProduct.ProductID) == 0 {
-				found = true
-			}
-		}
-
-		if !found {
-			if err := deleteRecipyProduct(
-				ctx,
-				tx,
-				oldRecipyProduct,
-			); err != nil {
-				return err
-			}
 		}
 	}
 
@@ -197,7 +185,6 @@ func selectRecipies(
 			"recipy.user_id",
 			"recipy.name",
 			"recipy.description",
-			"recipy.items",
 		).From("recipy"),
 	))
 	if err != nil {
@@ -249,15 +236,14 @@ func getRecipyProductsByRecipyID(
 func deleteRecipyProduct(
 	ctx context.Context,
 	ec squirrel.ExecerContext,
-	rp core.RecipyProduct,
+	rid xid.ID,
 ) error {
 
 	_, err := squirrel.ExecContextWith(
 		ctx,
 		ec,
 		squirrel.Delete("recipy_product").Where(
-			squirrel.Eq{"recipy_product.recipy_id": rp.RecipyID},
-			squirrel.Eq{"recipy_product.product_id": rp.ProductID},
+			squirrel.Eq{"recipy_product.recipy_id": rid},
 		),
 	)
 	return err

@@ -60,7 +60,7 @@ func (s *Server) Register(w http.ResponseWriter, r *http.Request) {
 		s.db,
 		uc.Name,
 		ph,
-		true,
+		false,
 	)
 	switch err {
 	case nil:
@@ -323,9 +323,10 @@ func (s *Server) CreateAdminUser(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) DeleteUser(super bool) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var uid xid.ID
-
-		var ok bool
+		var (
+			uid xid.ID
+			ok  bool
+		)
 
 		if !super {
 			uid, ok = extractContextUserID(r)

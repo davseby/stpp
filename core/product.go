@@ -15,12 +15,6 @@ const (
 	ServingTypeUnits       ServingType = "units"
 )
 
-func (st ServingType) IsValid() bool {
-	return st == ServingTypeGrams ||
-		st == ServingTypeUnits ||
-		st == ServingTypeMilliliters
-}
-
 type Product struct {
 	ID xid.ID `json:"id"`
 	ProductCore
@@ -42,7 +36,9 @@ func (pc *ProductCore) Validate() error {
 		return errors.New("name cannot be empty")
 	}
 
-	if !pc.Serving.Type.IsValid() {
+	switch pc.Serving.Type {
+	case ServingTypeGrams, ServingTypeMilliliters, ServingTypeUnits:
+	default:
 		return errors.New("invalid serving type")
 	}
 

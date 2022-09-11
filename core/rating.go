@@ -8,15 +8,14 @@ import (
 )
 
 type Rating struct {
-	ID       xid.ID
-	RecipyID xid.ID
-	UserID   xid.ID
+	RecipyID xid.ID `json:"recipy_id"`
+	UserID   xid.ID `json:"user_id"`
 	RatingCore
 }
 
 type RatingCore struct {
-	Score   decimal.Decimal
-	Comment string
+	Score   decimal.Decimal `json:"score"`
+	Comment string          `json:"comment"`
 }
 
 func (rc *RatingCore) Validate() error {

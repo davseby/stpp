@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"foodie/core"
+	"foodie/db"
 	"net/http"
 	"strings"
 	"time"
@@ -76,14 +77,13 @@ func (s *Server) router() chi.Router {
 		sr.Route("/{recipyId}", func(ssr chi.Router) {
 			ssr.Get("/", s.GetRecipy)
 			ssr.Route("/ratings", func(sssr chi.Router) {
-				sssr.Get("/", s.GetRatings)
-				sssr.Get("/{ratingId}", s.GetRating)
+				sssr.Get("/", s.GetRecipyRatings)
 
 				sssr.Group(func(ssssr chi.Router) {
 					ssssr.Use(s.authorize(false))
 					ssssr.Post("/", s.CreateRating)
-					ssssr.Patch("/{ratingId}", s.UpdateRating)
-					ssssr.Delete("/{ratingId}", s.DeleteRating)
+					ssssr.Patch("/", s.UpdateRating)
+					ssssr.Delete("/", s.DeleteRating)
 				})
 			})
 		})
@@ -143,7 +143,23 @@ func (s *Server) authorize(super bool) func(http.Handler) http.Handler {
 				w.Write([]byte(err.Error()))
 				return
 			default:
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+
+			_, err = db.GetUserByID(r.Context(), s.db, id)
+			switch err {
+			case nil:
+				// OK.
+			case db.ErrNotFound:
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			case r.Context().Err():
 				w.WriteHeader(http.StatusBadRequest)
+				return
+			default:
+				s.log.WithError(err).Error("fetching user by name")
+				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 

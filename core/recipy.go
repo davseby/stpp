@@ -8,15 +8,15 @@ import (
 )
 
 type Recipy struct {
-	ID     xid.ID
-	UserID xid.ID
+	ID     xid.ID `json:"id"`
+	UserID xid.ID `json:"user_id"`
 	RecipyCore
 }
 
 type RecipyCore struct {
-	Name        string
-	Description string
-	Products    []RecipyProduct
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	Products    []RecipyProduct `json:"products"`
 }
 
 func (rc *RecipyCore) Validate() error {
@@ -28,11 +28,15 @@ func (rc *RecipyCore) Validate() error {
 		return errors.New("description cannot be empty")
 	}
 
+	if len(rc.Products) < 2 {
+		return errors.New("recipy must contain at least two product")
+	}
+
 	return nil
 }
 
 type RecipyProduct struct {
-	RecipyID  xid.ID
-	ProductID xid.ID
-	Quantity  decimal.Decimal
+	RecipyID  xid.ID          `json:"-"`
+	ProductID xid.ID          `json:"product_id"`
+	Quantity  decimal.Decimal `json:"quantity"`
 }

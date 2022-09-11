@@ -75,7 +75,7 @@ func (s *Server) CreateRecipy(w http.ResponseWriter, r *http.Request) {
 func (s *Server) UpdateRecipy(w http.ResponseWriter, r *http.Request) {
 	rid, ok := extractPathID(r, "recipyId")
 	if !ok {
-		s.log.Error("extracting context user id data")
+		s.log.Error("extracting context recipy id data")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

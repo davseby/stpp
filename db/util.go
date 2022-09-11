@@ -17,7 +17,10 @@ import (
 //go:embed sql
 var migrations embed.FS
 
-var ErrNotFound = errors.New("not found")
+var (
+	ErrNotFound  = errors.New("not found")
+	ErrDuplicate = errors.New("duplicate")
+)
 
 func Connect(dsn string) (*sql.DB, error) {
 	cfg, err := mysql.ParseDSN(dsn)

@@ -9,20 +9,28 @@ import (
 	"github.com/rs/xid"
 )
 
-func GetRatings(ctx context.Context, qc squirrel.QueryerContext) ([]core.Rating, error) {
+func GetRatings(
+	ctx context.Context,
+	qc squirrel.QueryerContext,
+	rid xid.ID,
+) ([]core.Rating, error) {
+
 	return selectRatings(
 		ctx,
 		qc,
 		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
-			return sb
+			return sb.Where(
+				squirrel.Eq{"rating.recipy_id": rid},
+			)
 		},
 	)
 }
 
-func GetRatingByID(
+func GetRating(
 	ctx context.Context,
 	qc squirrel.QueryerContext,
-	id xid.ID,
+	rid xid.ID,
+	uid xid.ID,
 ) (*core.Rating, error) {
 
 	ratings, err := selectRatings(
@@ -30,7 +38,8 @@ func GetRatingByID(
 		qc,
 		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
 			return sb.Where(
-				squirrel.Eq{"rating.id": id},
+				squirrel.Eq{"rating.recipy_id": rid},
+				squirrel.Eq{"rating.user_id": uid},
 			)
 		},
 	)
@@ -54,7 +63,6 @@ func InsertRating(
 ) (*core.Rating, error) {
 
 	rating := core.Rating{
-		ID:         xid.New(),
 		RecipyID:   rid,
 		UserID:     uid,
 		RatingCore: rc,
@@ -64,7 +72,6 @@ func InsertRating(
 		ctx,
 		ec,
 		squirrel.Insert("rating").SetMap(map[string]interface{}{
-			"rating.id":        rating.ID,
 			"rating.recipy_id": rating.RecipyID,
 			"rating.user_id":   rating.UserID,
 			"rating.score":     rating.Score,
@@ -72,8 +79,13 @@ func InsertRating(
 		}),
 	)
 	if err != nil {
-		if merr, ok := err.(*mysql.MySQLError); ok && merr.Number == 1452 {
-			return nil, ErrNotFound
+		if merr, ok := err.(*mysql.MySQLError); ok {
+			switch merr.Number {
+			case 1062:
+				return nil, ErrDuplicate
+			case 1452:
+				return nil, ErrNotFound
+			}
 		}
 
 		return nil, err
@@ -82,10 +94,11 @@ func InsertRating(
 	return &rating, nil
 }
 
-func UpdateRatingByID(
+func UpdateRating(
 	ctx context.Context,
 	ec squirrel.ExecerContext,
-	id xid.ID,
+	rid xid.ID,
+	uid xid.ID,
 	rc core.RatingCore,
 ) error {
 
@@ -96,23 +109,26 @@ func UpdateRatingByID(
 			"rating.score":   rc.Score,
 			"rating.comment": rc.Comment,
 		}).Where(
-			squirrel.Eq{"rating.id": id},
+			squirrel.Eq{"rating.recipy_id": rid},
+			squirrel.Eq{"rating.user_id": uid},
 		),
 	)
 	return err
 }
 
-func DeleteRatingByID(
+func DeleteRating(
 	ctx context.Context,
 	ec squirrel.ExecerContext,
-	id xid.ID,
+	rid xid.ID,
+	uid xid.ID,
 ) error {
 
 	_, err := squirrel.ExecContextWith(
 		ctx,
 		ec,
 		squirrel.Delete("rating").Where(
-			squirrel.Eq{"rating.id": id},
+			squirrel.Eq{"rating.recipy_id": rid},
+			squirrel.Eq{"rating.user_id": uid},
 		),
 	)
 	return err
@@ -126,7 +142,6 @@ func selectRatings(
 
 	rows, err := squirrel.QueryContextWith(ctx, qc, dec(squirrel.
 		Select(
-			"rating.id",
 			"rating.recipy_id",
 			"rating.user_id",
 			"rating.score",
@@ -142,7 +157,6 @@ func selectRatings(
 	for rows.Next() {
 		var rating core.Rating
 		if err := rows.Scan(
-			&rating.ID,
 			&rating.RecipyID,
 			&rating.UserID,
 			&rating.Score,
