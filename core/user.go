@@ -12,6 +12,8 @@ import (
 )
 
 const (
+	RootAdminName = "admin"
+
 	issuer      = "foodie"
 	expireAfter = time.Hour * 24
 )

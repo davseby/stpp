@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/rs/xid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -164,8 +165,8 @@ func (s *Server) GetUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
-	id, err := extractIDFromPath(r)
-	if err != nil {
+	id, ok := extractPathID(r)
+	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -190,9 +191,10 @@ func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
-	id, err := extractContextData(r)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+	id, ok := extractContextUserID(r)
+	if !ok {
+		s.log.Error("extracting context user id data")
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -317,32 +319,59 @@ func (s *Server) CreateAdminUser(w http.ResponseWriter, r *http.Request) {
 	s.respondJSON(w, user)
 }
 
-func (s *Server) DeleteUser(admin bool) func(http.ResponseWriter, *http.Request) {
+func (s *Server) DeleteUser(super bool) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := extractContextData(r)
-		if err != nil {
-			s.log.WithError(err).Error("extracting context data")
+		var id xid.ID
+
+		var ok bool
+
+		if !super {
+			id, ok = extractContextUserID(r)
+			if !ok {
+				s.log.Error("extracting context user id data")
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		} else {
+			id, ok = extractPathID(r)
+			if !ok {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+		}
+
+		admin, ok := extractContextAdmin(r)
+		if !ok {
+			s.log.Error("extracting context admin data")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
 		if admin {
-			oid, err := extractIDFromPath(r)
-			if err != nil {
+			user, err := db.GetUserByID(r.Context(), s.db, id)
+			switch err {
+			case nil:
+				// OK.
+			case r.Context().Err():
 				w.WriteHeader(http.StatusBadRequest)
+				return
+			case db.ErrNotFound:
+				w.WriteHeader(http.StatusNotFound)
+				return
+			default:
+				s.log.WithError(err).Error("fetching user by id")
+				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 
-			if id.Compare(oid) == 0 {
+			if user.Name == core.RootAdminName {
 				w.WriteHeader(http.StatusBadRequest)
-				w.Write([]byte("cannot self delete if the user is admin"))
+				w.Write([]byte("cannot delete root admin"))
 				return
 			}
-
-			id = oid
 		}
 
-		err = db.DeleteUserByID(r.Context(), s.db, id)
+		err := db.DeleteUserByID(r.Context(), s.db, id)
 		switch err {
 		case nil:
 			// OK.

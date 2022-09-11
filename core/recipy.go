@@ -6,8 +6,12 @@ import (
 )
 
 type Recipy struct {
-	ID          xid.ID
-	UserID      xid.ID
+	ID     xid.ID
+	UserID xid.ID
+	RecipyCore
+}
+
+type RecipyCore struct {
 	Name        string
 	Description string
 	Items       []RecipyItem

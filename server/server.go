@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"foodie/core"
 	"net/http"
@@ -20,6 +19,7 @@ type contextKey int
 
 const (
 	contextKeyID contextKey = iota
+	contextKeyAdmin
 )
 
 type Server struct {
@@ -67,6 +67,18 @@ func (s *Server) router() chi.Router {
 			ssr.Post("/", s.CreateProduct)
 			ssr.Patch("/{id}", s.UpdateProduct)
 			ssr.Delete("/{id}", s.DeleteProduct)
+		})
+	})
+
+	r.Route("/recipy", func(sr chi.Router) {
+		sr.Get("/", s.GetRecipies)
+		sr.Get("/{id}", s.GetRecipy)
+
+		sr.Group(func(ssr chi.Router) {
+			ssr.Use(s.authorize(false))
+			ssr.Post("/", nil)
+			ssr.Patch("/{id}", nil)
+			ssr.Delete("/{id}", s.DeleteRecipy)
 		})
 	})
 
@@ -130,9 +142,13 @@ func (s *Server) authorize(super bool) func(http.Handler) http.Handler {
 				w,
 				r.WithContext(
 					context.WithValue(
-						r.Context(),
-						contextKeyID,
-						id,
+						context.WithValue(
+							r.Context(),
+							contextKeyID,
+							id,
+						),
+						contextKeyAdmin,
+						admin,
 					),
 				),
 			)
@@ -156,24 +172,18 @@ func (s *Server) respondJSON(w http.ResponseWriter, obj any) {
 	}
 }
 
-func extractContextData(r *http.Request) (xid.ID, error) {
-	vid := r.Context().Value(contextKeyID)
-
-	id, ok := vid.(xid.ID)
-	if vid == nil || !ok {
-		return xid.NilID(), errors.New("cannot extract id")
-	}
-
-	return id, nil
-}
-
-func extractIDFromPath(r *http.Request) (xid.ID, error) {
+func extractPathID(r *http.Request) (xid.ID, bool) {
 	sid := chi.URLParam(r, "id")
 	if sid == "" {
-		return xid.NilID(), nil
+		return xid.NilID(), false
 	}
 
-	return xid.FromString(sid)
+	id, err := xid.FromString(sid)
+	if err != nil {
+		return xid.NilID(), false
+	}
+
+	return id, true
 }
 
 func extractAuthorizationToken(r *http.Request) ([]byte, bool) {
@@ -185,4 +195,26 @@ func extractAuthorizationToken(r *http.Request) ([]byte, bool) {
 	}
 
 	return []byte(parts[1]), true
+}
+
+func extractContextUserID(r *http.Request) (xid.ID, bool) {
+	vid := r.Context().Value(contextKeyID)
+
+	id, ok := vid.(xid.ID)
+	if vid == nil || !ok {
+		return xid.NilID(), false
+	}
+
+	return id, true
+}
+
+func extractContextAdmin(r *http.Request) (bool, bool) {
+	vid := r.Context().Value(contextKeyAdmin)
+
+	admin, ok := vid.(bool)
+	if vid == nil || !ok {
+		return false, false
+	}
+
+	return admin, true
 }

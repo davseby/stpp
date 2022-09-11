@@ -62,9 +62,10 @@ func (s *Server) CreateProduct(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) UpdateProduct(w http.ResponseWriter, r *http.Request) {
-	id, err := extractContextData(r)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+	id, ok := extractContextUserID(r)
+	if !ok {
+		s.log.Error("extracting context user id data")
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -113,13 +114,13 @@ func (s *Server) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	s.respondJSON(w, product)
 }
 func (s *Server) DeleteProduct(w http.ResponseWriter, r *http.Request) {
-	id, err := extractIDFromPath(r)
-	if err != nil {
+	id, ok := extractPathID(r)
+	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	err = db.DeleteProductByID(r.Context(), s.db, id)
+	err := db.DeleteProductByID(r.Context(), s.db, id)
 	switch err {
 	case nil:
 		// OK.
@@ -136,8 +137,8 @@ func (s *Server) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetProduct(w http.ResponseWriter, r *http.Request) {
-	id, err := extractIDFromPath(r)
-	if err != nil {
+	id, ok := extractPathID(r)
+	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
