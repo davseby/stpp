@@ -15,6 +15,10 @@ const (
 	ServingTypeUnits       ServingType = "units"
 )
 
+var (
+	ErrInvalidProduct = errors.New("invalid product")
+)
+
 func (st ServingType) IsValid() bool {
 	return st == ServingTypeGrams ||
 		st == ServingTypeUnits ||

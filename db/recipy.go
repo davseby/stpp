@@ -2,10 +2,11 @@ package db
 
 import (
 	"context"
-	"encoding/json"
+	"database/sql"
 	"foodie/core"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/go-sql-driver/mysql"
 	"github.com/rs/xid"
 )
 
@@ -47,10 +48,16 @@ func GetRecipyByID(
 
 func InsertRecipy(
 	ctx context.Context,
-	ec squirrel.ExecerContext,
+	db *sql.DB,
 	uid xid.ID,
 	rc core.RecipyCore,
 ) (*core.Recipy, error) {
+
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
 
 	recipy := core.Recipy{
 		ID:         xid.New(),
@@ -58,23 +65,35 @@ func InsertRecipy(
 		RecipyCore: rc,
 	}
 
-	data, err := json.Marshal(rc.Items)
-	if err != nil {
-		return nil, err
-	}
-
 	_, err = squirrel.ExecContextWith(
 		ctx,
-		ec,
+		tx,
 		squirrel.Insert("recipy").SetMap(map[string]interface{}{
 			"recipy.id":          recipy.ID,
 			"recipy.user_id":     recipy.UserID,
 			"recipy.name":        recipy.Name,
 			"recipy.description": recipy.Description,
-			"recipy.items":       data,
 		}),
 	)
 	if err != nil {
+		return nil, err
+	}
+
+	for _, rp := range rc.Products {
+		if err := upsertRecipyProduct(
+			ctx,
+			tx,
+			rp,
+		); err != nil {
+			if merr, ok := err.(*mysql.MySQLError); ok && merr.Number == 1452 {
+				return nil, core.ErrInvalidProduct
+			}
+
+			return nil, err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 
@@ -83,27 +102,70 @@ func InsertRecipy(
 
 func UpdateRecipyByID(
 	ctx context.Context,
-	ec squirrel.ExecerContext,
+	db *sql.DB,
 	id xid.ID,
 	rc core.RecipyCore,
 ) error {
 
-	data, err := json.Marshal(rc.Items)
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil
+	}
+	defer tx.Rollback()
+
+	oldRecipyProducts, err := getRecipyProductsByRecipyID(ctx, tx, id)
 	if err != nil {
 		return err
 	}
 
+	for _, recipyProduct := range rc.Products {
+		if err := upsertRecipyProduct(
+			ctx,
+			tx,
+			recipyProduct,
+		); err != nil {
+			if merr, ok := err.(*mysql.MySQLError); ok && merr.Number == 1452 {
+				return core.ErrInvalidProduct
+			}
+
+			return err
+		}
+	}
+
+	for _, oldRecipyProduct := range oldRecipyProducts {
+		var found bool
+		for _, recipyProduct := range rc.Products {
+			if recipyProduct.ProductID.Compare(oldRecipyProduct.ProductID) == 0 {
+				found = true
+			}
+		}
+
+		if !found {
+			if err := deleteRecipyProduct(
+				ctx,
+				tx,
+				oldRecipyProduct,
+			); err != nil {
+				return err
+			}
+		}
+	}
+
 	_, err = squirrel.ExecContextWith(
 		ctx,
-		ec,
+		tx,
 		squirrel.Update("recipy").SetMap(map[string]interface{}{
 			"recipy.name":        rc.Name,
 			"recipy.description": rc.Description,
-			"recipy.items":       data,
 		}).Where(
 			squirrel.Eq{"recipy.id": id},
 		),
 	)
+
+	if err := tx.Commit(); err != nil {
+		return nil
+	}
+
 	return err
 }
 
@@ -145,27 +207,111 @@ func selectRecipies(
 
 	recipies := make([]core.Recipy, 0)
 	for rows.Next() {
-		var (
-			recipy core.Recipy
-			data   []byte
-		)
-
+		var recipy core.Recipy
 		if err := rows.Scan(
 			&recipy.ID,
 			&recipy.UserID,
 			&recipy.Name,
 			&recipy.Description,
-			&data,
 		); err != nil {
 			return nil, err
 		}
 
-		if err := json.Unmarshal(data, &recipy.Items); err != nil {
+		recipyProducts, err := getRecipyProductsByRecipyID(ctx, qc, recipy.ID)
+		if err != nil {
 			return nil, err
 		}
 
+		recipy.Products = recipyProducts
 		recipies = append(recipies, recipy)
 	}
 
 	return recipies, nil
+}
+
+func getRecipyProductsByRecipyID(
+	ctx context.Context,
+	qc squirrel.QueryerContext,
+	id xid.ID,
+) ([]core.RecipyProduct, error) {
+
+	return selectRecipyProducts(
+		ctx,
+		qc,
+		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
+			return sb.Where(
+				squirrel.Eq{"recipy_product.recipy_id": id},
+			)
+		},
+	)
+}
+
+func deleteRecipyProduct(
+	ctx context.Context,
+	ec squirrel.ExecerContext,
+	rp core.RecipyProduct,
+) error {
+
+	_, err := squirrel.ExecContextWith(
+		ctx,
+		ec,
+		squirrel.Delete("recipy_product").Where(
+			squirrel.Eq{"recipy_product.recipy_id": rp.RecipyID},
+			squirrel.Eq{"recipy_product.product_id": rp.ProductID},
+		),
+	)
+	return err
+}
+
+func upsertRecipyProduct(
+	ctx context.Context,
+	ec squirrel.ExecerContext,
+	rp core.RecipyProduct,
+) error {
+
+	_, err := squirrel.ExecContextWith(
+		ctx,
+		ec,
+		squirrel.Insert("recipy_product").SetMap(map[string]interface{}{
+			"recipy_product.recipy_id":  rp.RecipyID,
+			"recipy_product.product_id": rp.ProductID,
+			"recipy_product.quantity":   rp.Quantity,
+		}).Suffix("ON DUPLICATE KEY UPDATE recipy_product.quantity = VALUES(recipy_product.quantity)"),
+	)
+	return err
+}
+
+func selectRecipyProducts(
+	ctx context.Context,
+	qc squirrel.QueryerContext,
+	dec func(squirrel.SelectBuilder) squirrel.SelectBuilder,
+) ([]core.RecipyProduct, error) {
+
+	rows, err := squirrel.QueryContextWith(ctx, qc, dec(squirrel.
+		Select(
+			"recipy_product.recipy_id",
+			"recipy_product.product_id",
+			"recipy_product.quantity",
+		).From("recipy_product"),
+	))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	recipyProducts := make([]core.RecipyProduct, 0)
+	for rows.Next() {
+		var recipyProduct core.RecipyProduct
+		if err := rows.Scan(
+			&recipyProduct.RecipyID,
+			&recipyProduct.ProductID,
+			&recipyProduct.Quantity,
+		); err != nil {
+			return nil, err
+		}
+
+		recipyProducts = append(recipyProducts, recipyProduct)
+	}
+
+	return recipyProducts, nil
 }

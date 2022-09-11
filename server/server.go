@@ -70,15 +70,27 @@ func (s *Server) router() chi.Router {
 		})
 	})
 
-	r.Route("/recipy", func(sr chi.Router) {
+	r.Route("/recipies", func(sr chi.Router) {
 		sr.Get("/", s.GetRecipies)
 		sr.Get("/{id}", s.GetRecipy)
 
 		sr.Group(func(ssr chi.Router) {
 			ssr.Use(s.authorize(false))
+			ssr.Post("/", s.CreateRecipy)
+			ssr.Patch("/{id}", s.UpdateRecipy)
+			ssr.Delete("/{id}", s.DeleteRecipy)
+		})
+	})
+
+	r.Route("/ratings", func(sr chi.Router) {
+		sr.Get("/", nil)
+		sr.Get("/{id}", nil)
+
+		sr.Group(func(ssr chi.Router) {
+			ssr.Use(s.authorize(false))
 			ssr.Post("/", nil)
 			ssr.Patch("/{id}", nil)
-			ssr.Delete("/{id}", s.DeleteRecipy)
+			ssr.Delete("/{id}", nil)
 		})
 	})
 
