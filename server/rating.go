@@ -64,6 +64,29 @@ func (s *Server) CreateRating(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	recipy, err := db.GetRecipyByID(r.Context(), s.db, rid)
+	switch err {
+	case nil:
+		// OK.
+	case r.Context().Err():
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	case db.ErrNotFound:
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("recipy"))
+		return
+	default:
+		s.log.WithError(err).Error("fetching recipy by id")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if recipy.UserID.Compare(uid) == 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("cannot create a rating for your recipy"))
+		return
+	}
+
 	rating, err := db.InsertRating(r.Context(), s.db, rid, uid, rc)
 	switch err {
 	case nil:
@@ -74,10 +97,6 @@ func (s *Server) CreateRating(w http.ResponseWriter, r *http.Request) {
 	case db.ErrDuplicate:
 		w.WriteHeader(http.StatusConflict)
 		w.Write([]byte("rating"))
-		return
-	case db.ErrNotFound:
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("recipy"))
 		return
 	default:
 		s.log.WithError(err).Error("creating a new rating")
