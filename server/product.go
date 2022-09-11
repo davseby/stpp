@@ -61,6 +61,80 @@ func (s *Server) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	s.respondJSON(w, product)
 }
 
+func (s *Server) UpdateProduct(w http.ResponseWriter, r *http.Request) {
+	id, err := extractContextData(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	var pc core.ProductCore
+	if err := json.Unmarshal(data, &pc); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("invalid JSON object"))
+		return
+	}
+
+	err = db.UpdateProductByID(r.Context(), s.db, id, pc)
+	switch err {
+	case nil:
+		// OK.
+	case r.Context().Err():
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	default:
+		s.log.WithError(err).Error("updating product")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	product, err := db.GetProductByID(r.Context(), s.db, id)
+	switch err {
+	case nil:
+		// OK.
+	case r.Context().Err():
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	case db.ErrNotFound:
+		w.WriteHeader(http.StatusNotFound)
+		return
+	default:
+		s.log.WithError(err).Error("fetching product by id")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	s.respondJSON(w, product)
+}
+func (s *Server) DeleteProduct(w http.ResponseWriter, r *http.Request) {
+	id, err := extractIDFromPath(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = db.DeleteProductByID(r.Context(), s.db, id)
+	switch err {
+	case nil:
+		// OK.
+	case r.Context().Err():
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	default:
+		s.log.WithError(err).Error("deleting product by id")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func (s *Server) GetProduct(w http.ResponseWriter, r *http.Request) {
 	id, err := extractIDFromPath(r)
 	if err != nil {

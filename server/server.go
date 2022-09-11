@@ -65,8 +65,8 @@ func (s *Server) router() chi.Router {
 		sr.Group(func(ssr chi.Router) {
 			ssr.Use(s.authorize(true))
 			ssr.Post("/", s.CreateProduct)
-			ssr.Patch("/{id}", nil)
-			ssr.Delete("/{id}", nil)
+			ssr.Patch("/{id}", s.UpdateProduct)
+			ssr.Delete("/{id}", s.DeleteProduct)
 		})
 	})
 
@@ -74,7 +74,7 @@ func (s *Server) router() chi.Router {
 		sr.Group(func(ssr chi.Router) {
 			ssr.Use(s.authorize(false))
 			ssr.Delete("/", s.DeleteUser(false))
-			ssr.Patch("/", s.UpdateUser)
+			ssr.Patch("/", s.UpdateUserPassword)
 		})
 
 		sr.Group(func(ssr chi.Router) {

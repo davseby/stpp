@@ -102,7 +102,7 @@ func InsertUser(
 	return &user, nil
 }
 
-func UpdateUserPassword(
+func UpdateUserPasswordByID(
 	ctx context.Context,
 	ec squirrel.ExecerContext,
 	id xid.ID,
@@ -121,7 +121,7 @@ func UpdateUserPassword(
 	return err
 }
 
-func DeleteUser(
+func DeleteUserByID(
 	ctx context.Context,
 	ec squirrel.ExecerContext,
 	id xid.ID,

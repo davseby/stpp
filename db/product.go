@@ -73,7 +73,7 @@ func InsertProduct(
 	return &product, nil
 }
 
-func UpdateProduct(
+func UpdateProductByID(
 	ctx context.Context,
 	ec squirrel.ExecerContext,
 	id xid.ID,
@@ -95,7 +95,7 @@ func UpdateProduct(
 	return err
 }
 
-func DeleteProduct(
+func DeleteProductByID(
 	ctx context.Context,
 	ec squirrel.ExecerContext,
 	id xid.ID,

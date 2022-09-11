@@ -7,15 +7,18 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type ServingType int
+type ServingType string
 
 const (
-	ServingTypeGrams ServingType = iota + 1
-	ServingTypeUnits
+	ServingTypeGrams       ServingType = "grams"
+	ServingTypeMilliliters ServingType = "milliliters"
+	ServingTypeUnits       ServingType = "units"
 )
 
 func (st ServingType) IsValid() bool {
-	return st == ServingTypeGrams || st == ServingTypeUnits
+	return st == ServingTypeGrams ||
+		st == ServingTypeUnits ||
+		st == ServingTypeMilliliters
 }
 
 type Product struct {

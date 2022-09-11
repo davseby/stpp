@@ -189,7 +189,7 @@ func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 	s.respondJSON(w, user)
 }
 
-func (s *Server) UpdateUser(w http.ResponseWriter, r *http.Request) {
+func (s *Server) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 	id, err := extractContextData(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -253,7 +253,7 @@ func (s *Server) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = db.UpdateUserPassword(r.Context(), s.db, id, ph)
+	err = db.UpdateUserPasswordByID(r.Context(), s.db, id, ph)
 	switch err {
 	case nil:
 		// OK.
@@ -342,7 +342,7 @@ func (s *Server) DeleteUser(admin bool) func(http.ResponseWriter, *http.Request)
 			id = oid
 		}
 
-		err = db.DeleteUser(r.Context(), s.db, id)
+		err = db.DeleteUserByID(r.Context(), s.db, id)
 		switch err {
 		case nil:
 			// OK.

@@ -11,7 +11,7 @@ INSERT INTO `user` VALUES ("cceqj5n6i1e7hgou9lv0", "admin", "$2a$10$4nYuciuXWVGO
 CREATE TABLE `product` (
 	`id` VARCHAR(20) NOT NULL,
 	`name` VARCHAR(255) NOT NULL,
-	`serving_type` INTEGER(1) NOT NULL,
+	`serving_type` VARCHAR(15) NOT NULL,
 	`serving_size` INTEGER NOT NULL,
 	`serving_calories` INTEGER NOT NULL,
 	PRIMARY KEY (`id`)
