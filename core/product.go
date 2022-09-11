@@ -19,8 +19,7 @@ func (st ServingType) IsValid() bool {
 }
 
 type Product struct {
-	ID      xid.ID `json:"id"`
-	AdminID xid.ID `json:"admin_id"`
+	ID xid.ID `json:"id"`
 	ProductCore
 }
 

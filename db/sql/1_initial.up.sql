@@ -10,13 +10,11 @@ INSERT INTO `user` VALUES ("cceqj5n6i1e7hgou9lv0", "admin", "$2a$10$4nYuciuXWVGO
 
 CREATE TABLE `product` (
 	`id` VARCHAR(20) NOT NULL,
-	`admin_id` VARCHAR(20) NOT NULL,
 	`name` VARCHAR(255) NOT NULL,
 	`serving_type` INTEGER(1) NOT NULL,
 	`serving_size` INTEGER NOT NULL,
 	`serving_calories` INTEGER NOT NULL,
-	PRIMARY KEY (`id`),
-	CONSTRAINT `admin_fk1` FOREIGN KEY (`admin_id`) REFERENCES `user` (`id`)
+	PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `recipy` (
@@ -26,7 +24,7 @@ CREATE TABLE `recipy` (
 	`description` VARCHAR(1023) NOT NULL,
 	`items` BLOB NOT NULL,
 	PRIMARY KEY (`id`),
-	CONSTRAINT `user_fk1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
+	CONSTRAINT `user_fk1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `rating` (
@@ -36,6 +34,6 @@ CREATE TABLE `rating` (
 	`score` INTEGER(4) NOT NULL DEFAULT 10,
 	`description` VARCHAR(511) NOT NULL,
 	PRIMARY KEY (`id`),
-	CONSTRAINT `recipy_fk1` FOREIGN KEY (`recipy_id`) REFERENCES `recipy` (`id`),
-	CONSTRAINT `user_fk2` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
+	CONSTRAINT `recipy_fk1` FOREIGN KEY (`recipy_id`) REFERENCES `recipy` (`id`) ON DELETE CASCADE,
+	CONSTRAINT `user_fk2` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

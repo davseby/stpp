@@ -73,17 +73,20 @@ func (s *Server) router() chi.Router {
 	r.Route("/users", func(sr chi.Router) {
 		sr.Group(func(ssr chi.Router) {
 			ssr.Use(s.authorize(false))
-			ssr.Get("/{id}", nil)
-			ssr.Patch("/{id}", nil)
+			ssr.Delete("/", s.DeleteUser(false))
+			ssr.Patch("/", s.UpdateUser)
 		})
 
 		sr.Group(func(ssr chi.Router) {
 			ssr.Use(s.authorize(true))
 			ssr.Get("/", s.GetUsers)
 			ssr.Post("/", s.CreateAdminUser)
-			ssr.Delete("/{id}", nil)
+			ssr.Get("/{id}", s.GetUser)
+			ssr.Delete("/{id}", s.DeleteUser(true))
 		})
 	})
+
+	r.Get("/version", s.Version)
 
 	return r
 }

@@ -45,14 +45,7 @@ func (s *Server) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	aid, err := extractContextData(r)
-	if err != nil {
-		s.log.WithError(err).Error("extracting context data")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	product, err := db.InsertProduct(r.Context(), s.db, aid, pc)
+	product, err := db.InsertProduct(r.Context(), s.db, pc)
 	switch err {
 	case nil:
 		// OK.

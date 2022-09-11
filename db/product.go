@@ -47,13 +47,11 @@ func GetProductByID(
 func InsertProduct(
 	ctx context.Context,
 	ec squirrel.ExecerContext,
-	aid xid.ID,
 	pc core.ProductCore,
 ) (*core.Product, error) {
 
 	product := core.Product{
 		ID:          xid.New(),
-		AdminID:     aid,
 		ProductCore: pc,
 	}
 
@@ -62,7 +60,6 @@ func InsertProduct(
 		ec,
 		squirrel.Insert("product").SetMap(map[string]interface{}{
 			"product.id":               product.ID,
-			"product.admin_id":         product.AdminID,
 			"product.name":             product.Name,
 			"product.serving_type":     product.Serving.Type,
 			"product.serving_size":     product.Serving.Size,
@@ -140,7 +137,6 @@ func selectProducts(
 		var product core.Product
 		if err := rows.Scan(
 			&product.ID,
-			&product.AdminID,
 			&product.Name,
 			&product.Serving.Type,
 			&product.Serving.Size,

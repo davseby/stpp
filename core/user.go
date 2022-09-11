@@ -38,7 +38,11 @@ func (uc *UserCore) Validate() error {
 		return errors.New("user name cannot be empty")
 	}
 
-	if len(uc.Password) < 4 {
+	return ValidatePassword(uc.Password)
+}
+
+func ValidatePassword(pass string) error {
+	if len(pass) < 4 {
 		return errors.New("user password must be at least 4 characters long")
 	}
 
