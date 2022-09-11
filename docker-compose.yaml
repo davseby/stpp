@@ -1,0 +1,10 @@
+---
+version: '3'
+services:
+  db:
+    image: "mariadb"
+    environment:
+      - MYSQL_ROOT_PASSWORD=db_password
+      - MYSQL_DATABASE=db
+    ports:
+      - 13306:3306
