@@ -53,21 +53,21 @@ type Serving struct {
 // Validate checks whether product core contains valid attributes.
 func (pc *ProductCore) Validate() *apierr.Error {
 	if pc.Name == "" {
-		return apierr.Attribute("name", "cannot be empty")
+		return apierr.InvalidAttribute("name", "cannot be empty")
 	}
 
 	switch pc.Serving.Type {
 	case ServingTypeGrams, ServingTypeMilliliters, ServingTypeUnits:
 	default:
-		return apierr.Attribute("type", "must be of a valid type")
+		return apierr.InvalidAttribute("type", "must be of a valid type")
 	}
 
 	if pc.Serving.Size.Cmp(decimal.Zero) <= 0 {
-		return apierr.Attribute("size", "cannot be less or equal to 0")
+		return apierr.InvalidAttribute("size", "cannot be less or equal to 0")
 	}
 
 	if pc.Serving.Calories.IsNegative() {
-		return apierr.Attribute("name", "cannot be less than 0")
+		return apierr.InvalidAttribute("name", "cannot be less than 0")
 	}
 
 	return nil

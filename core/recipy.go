@@ -36,15 +36,15 @@ type RecipyCore struct {
 // Validate checks whether recipy core contains valid attributes.
 func (rc *RecipyCore) Validate() *apierr.Error {
 	if rc.Name == "" {
-		return apierr.Attribute("name", "cannot be empty")
+		return apierr.InvalidAttribute("name", "cannot be empty")
 	}
 
 	if rc.Description == "" {
-		return apierr.Attribute("description", "cannot be empty")
+		return apierr.InvalidAttribute("description", "cannot be empty")
 	}
 
 	if len(rc.Products) < 2 {
-		return apierr.Attribute("products", "must contains at least two elements")
+		return apierr.InvalidAttribute("products", "must contains at least two elements")
 	}
 
 	return nil

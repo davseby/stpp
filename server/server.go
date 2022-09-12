@@ -17,20 +17,35 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// contextKey is an unique type used to store context data.
 type contextKey int
 
 const (
-	contextKeyID contextKey = iota
+	// contextKeyUserID is used to store user id data.
+	contextKeyUserID contextKey = iota
+
+	// contextKeyAdmin is used to store admin flag data.
 	contextKeyAdmin
 )
 
+// Server contains structures and data that is required to run a web
+// server.
 type Server struct {
-	log    logrus.FieldLogger
-	db     *sql.DB
-	serv   *http.Server
+	// log is a configured logger structure.
+	log logrus.FieldLogger
+
+	// db is an API that is used to communicate with the database.
+	db *sql.DB
+
+	// serv is a underlying structure used to establish and maintain
+	// clients connections pool.
+	serv *http.Server
+
+	// secret specifies the secret that is used to generate jwt hash.
 	secret []byte
 }
 
+// NewServer creates a fresh instance of the server.
 func NewServer(db *sql.DB, port string, secret []byte) *Server {
 	s := &Server{
 		log:    logrus.New(),
@@ -46,19 +61,22 @@ func NewServer(db *sql.DB, port string, secret []byte) *Server {
 	return s
 }
 
+// Start starts the server. It blocks until the server.Stop is called.
 func (s *Server) Start() error {
 	return s.serv.ListenAndServe()
 }
 
+// Stop shuts down the server.
 func (s *Server) Stop() error {
 	return s.serv.Shutdown(context.Background())
 }
 
+// router builds the server router.
 func (s *Server) router() chi.Router {
 	r := chi.NewRouter()
 
-	r.Post("/register", s.Register)
 	r.Post("/login", s.Login)
+	r.Post("/register", s.Register)
 
 	r.Route("/products", func(sr chi.Router) {
 		sr.Get("/", s.GetProducts)
@@ -101,12 +119,13 @@ func (s *Server) router() chi.Router {
 		})
 	})
 
-	r.Get("/version", s.Version)
+	r.Get("/version", s.GetVersion)
 
 	return r
 }
 
-func (s *Server) Version(w http.ResponseWriter, r *http.Request) {
+// GetVersion returns server version information.
+func (s *Server) GetVersion(w http.ResponseWriter, r *http.Request) {
 	s.respondJSON(w, struct {
 		Version string `json:"version"`
 	}{
@@ -114,6 +133,8 @@ func (s *Server) Version(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// authorize is a middleware that authorizes incoming requests by their
+// authorization token.
 func (s *Server) authorize(super bool) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -138,19 +159,19 @@ func (s *Server) authorize(super bool) func(http.Handler) http.Handler {
 			case nil:
 				// OK.
 			case db.ErrNotFound:
-				w.WriteHeader(http.StatusUnauthorized)
+				apierr.Unauthorized().Respond(w)
 				return
 			case r.Context().Err():
-				w.WriteHeader(http.StatusBadRequest)
+				apierr.Context().Respond(w)
 				return
 			default:
 				s.log.WithError(err).Error("fetching user by name")
-				w.WriteHeader(http.StatusInternalServerError)
+				apierr.Database().Respond(w)
 				return
 			}
 
 			if super && !admin {
-				w.WriteHeader(http.StatusForbidden)
+				apierr.Forbidden().Respond(w)
 				return
 			}
 
@@ -160,7 +181,7 @@ func (s *Server) authorize(super bool) func(http.Handler) http.Handler {
 					context.WithValue(
 						context.WithValue(
 							r.Context(),
-							contextKeyID,
+							contextKeyUserID,
 							id,
 						),
 						contextKeyAdmin,
@@ -172,22 +193,27 @@ func (s *Server) authorize(super bool) func(http.Handler) http.Handler {
 	}
 }
 
+// respondJSON marshals the given object and writes its data to the response
+// writer.
 func (s *Server) respondJSON(w http.ResponseWriter, obj any) {
+	w.Header().Add("Content-Type", "application/json")
+
 	data, err := json.Marshal(obj)
 	if err != nil {
-		s.log.WithError(err).Error("marshalling response object")
-		w.WriteHeader(http.StatusInternalServerError)
+		s.log.WithError(err).Error("marshaling response object")
+		apierr.Internal().Respond(w)
 		return
 	}
 
 	_, err = w.Write(data)
 	if err != nil {
 		s.log.WithError(err).Error("writing to client response data")
-		w.WriteHeader(http.StatusInternalServerError)
+		apierr.Internal().Respond(w)
 		return
 	}
 }
 
+// extractPathID extracts given key from the request path.
 func (s *Server) extractPathID(r *http.Request, key string) (xid.ID, *apierr.Error) {
 	sid := chi.URLParam(r, key)
 	if sid == "" {
@@ -202,6 +228,8 @@ func (s *Server) extractPathID(r *http.Request, key string) (xid.ID, *apierr.Err
 	return id, nil
 }
 
+// extractAuthorizationToken extract authorization token from the
+// authorization header.
 func (s *Server) extractAuthorizationToken(r *http.Request) ([]byte, *apierr.Error) {
 	value := r.Header.Get("Authorization")
 
@@ -213,8 +241,9 @@ func (s *Server) extractAuthorizationToken(r *http.Request) ([]byte, *apierr.Err
 	return []byte(parts[1]), nil
 }
 
+// extractContextUserID extracts user id from the request context.
 func (s *Server) extractContextUserID(r *http.Request) (xid.ID, *apierr.Error) {
-	vid := r.Context().Value(contextKeyID)
+	vid := r.Context().Value(contextKeyUserID)
 
 	id, ok := vid.(xid.ID)
 	if vid == nil || !ok {
@@ -225,6 +254,7 @@ func (s *Server) extractContextUserID(r *http.Request) (xid.ID, *apierr.Error) {
 	return id, nil
 }
 
+// extractContextAdmin extracts admin flag from the request context.
 func (s *Server) extractContextAdmin(r *http.Request) (bool, *apierr.Error) {
 	vid := r.Context().Value(contextKeyAdmin)
 

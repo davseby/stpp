@@ -41,7 +41,7 @@ type UserInput struct {
 // Validate checks whether user input contains valid attributes.
 func (ui *UserInput) Validate() *apierr.Error {
 	if ui.Name == "" {
-		return apierr.Attribute("name", "cannot be empty")
+		return apierr.InvalidAttribute("name", "cannot be empty")
 	}
 
 	return ValidatePassword(ui.Password)
@@ -50,7 +50,7 @@ func (ui *UserInput) Validate() *apierr.Error {
 // ValidatePassword validates the password.
 func ValidatePassword(pass string) *apierr.Error {
 	if len(pass) < 4 {
-		return apierr.Attribute("password", "must be at least 4 characters long")
+		return apierr.InvalidAttribute("password", "must be at least 4 characters long")
 	}
 
 	return nil

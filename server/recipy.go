@@ -20,13 +20,13 @@ func (s *Server) CreateRecipy(w http.ResponseWriter, r *http.Request) {
 
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		apierr.DataFormat(apierr.RequestData).Respond(w)
+		apierr.MalformedDataInput(apierr.DataTypeRequestBody).Respond(w)
 		return
 	}
 
 	var rc core.RecipyCore
 	if err := json.Unmarshal(data, &rc); err != nil {
-		apierr.DataFormat(apierr.JSONData).Respond(w)
+		apierr.MalformedDataInput(apierr.DataTypeJSON).Respond(w)
 		return
 	}
 
@@ -160,7 +160,7 @@ func (s *Server) UpdateRecipy(w http.ResponseWriter, r *http.Request) {
 
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		apierr.DataFormat(apierr.RequestData).Respond(w)
+		apierr.MalformedDataInput(apierr.DataTypeRequestBody).Respond(w)
 		return
 	}
 
@@ -194,7 +194,7 @@ func (s *Server) UpdateRecipy(w http.ResponseWriter, r *http.Request) {
 
 	var rc core.RecipyCore
 	if err := json.Unmarshal(data, &rc); err != nil {
-		apierr.DataFormat(apierr.JSONData).Respond(w)
+		apierr.MalformedDataInput(apierr.DataTypeJSON).Respond(w)
 		return
 	}
 

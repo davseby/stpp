@@ -13,13 +13,13 @@ import (
 func (s *Server) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		apierr.DataFormat(apierr.RequestData).Respond(w)
+		apierr.MalformedDataInput(apierr.DataTypeRequestBody).Respond(w)
 		return
 	}
 
 	var pc core.ProductCore
 	if err := json.Unmarshal(data, &pc); err != nil {
-		apierr.DataFormat(apierr.JSONData).Respond(w)
+		apierr.MalformedDataInput(apierr.DataTypeJSON).Respond(w)
 		return
 	}
 
@@ -99,13 +99,13 @@ func (s *Server) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		apierr.DataFormat(apierr.RequestData).Respond(w)
+		apierr.MalformedDataInput(apierr.DataTypeRequestBody).Respond(w)
 		return
 	}
 
 	var pc core.ProductCore
 	if err := json.Unmarshal(data, &pc); err != nil {
-		apierr.DataFormat(apierr.JSONData).Respond(w)
+		apierr.MalformedDataInput(apierr.DataTypeJSON).Respond(w)
 		return
 	}
 

@@ -17,13 +17,13 @@ import (
 func (s *Server) CreateAdminUser(w http.ResponseWriter, r *http.Request) {
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		apierr.DataFormat(apierr.RequestData).Respond(w)
+		apierr.MalformedDataInput(apierr.DataTypeRequestBody).Respond(w)
 		return
 	}
 
 	var ui core.UserInput
 	if err := json.Unmarshal(data, &ui); err != nil {
-		apierr.DataFormat(apierr.JSONData).Respond(w)
+		apierr.MalformedDataInput(apierr.DataTypeJSON).Respond(w)
 		return
 	}
 
@@ -116,7 +116,7 @@ func (s *Server) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		apierr.DataFormat(apierr.RequestData).Respond(w)
+		apierr.MalformedDataInput(apierr.DataTypeRequestBody).Respond(w)
 		return
 	}
 
@@ -126,7 +126,7 @@ func (s *Server) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.Unmarshal(data, &inp); err != nil {
-		apierr.DataFormat(apierr.JSONData).Respond(w)
+		apierr.MalformedDataInput(apierr.DataTypeJSON).Respond(w)
 		return
 	}
 
@@ -258,13 +258,13 @@ func (s *Server) DeleteUser(super bool) func(http.ResponseWriter, *http.Request)
 func (s *Server) Login(w http.ResponseWriter, r *http.Request) {
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		apierr.DataFormat(apierr.RequestData).Respond(w)
+		apierr.MalformedDataInput(apierr.DataTypeRequestBody).Respond(w)
 		return
 	}
 
 	var ui core.UserInput
 	if err := json.Unmarshal(data, &ui); err != nil {
-		apierr.DataFormat(apierr.JSONData).Respond(w)
+		apierr.MalformedDataInput(apierr.DataTypeJSON).Respond(w)
 		return
 	}
 
@@ -314,13 +314,13 @@ func (s *Server) Login(w http.ResponseWriter, r *http.Request) {
 func (s *Server) Register(w http.ResponseWriter, r *http.Request) {
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		apierr.DataFormat(apierr.RequestData).Respond(w)
+		apierr.MalformedDataInput(apierr.DataTypeRequestBody).Respond(w)
 		return
 	}
 
 	var ui core.UserInput
 	if err := json.Unmarshal(data, &ui); err != nil {
-		apierr.DataFormat(apierr.JSONData).Respond(w)
+		apierr.MalformedDataInput(apierr.DataTypeJSON).Respond(w)
 		return
 	}
 
