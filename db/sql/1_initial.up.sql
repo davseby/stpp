@@ -29,7 +29,7 @@ CREATE TABLE `recipy` (
 CREATE TABLE `recipy_product` (
 	`recipy_id` VARCHAR(20) NOT NULL,
 	`product_id` VARCHAR(20) NOT NULL,
-	`quantity` DECIMAL(18, 4) INTEGER NOT NULL,
+	`quantity` DECIMAL(18, 4) NOT NULL,
 	PRIMARY KEY (`recipy_id`, `product_id`),
 	CONSTRAINT `recipy_fk1` FOREIGN KEY (`recipy_id`) REFERENCES `recipy` (`id`) ON DELETE CASCADE,
 	CONSTRAINT `product_fk1` FOREIGN KEY (`product_id`) REFERENCES `product` (`id`) ON DELETE CASCADE
