@@ -35,13 +35,3 @@ CREATE TABLE `recipy_product` (
 	CONSTRAINT `recipy_fk1` FOREIGN KEY (`recipy_id`) REFERENCES `recipy` (`id`) ON DELETE CASCADE,
 	CONSTRAINT `product_fk1` FOREIGN KEY (`product_id`) REFERENCES `product` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE `rating` (
-	`recipy_id` VARCHAR(20) NOT NULL,
-	`user_id` VARCHAR(20) NOT NULL,
-	`score` DECIMAL(2,2) NOT NULL,
-	`comment` VARCHAR(511) NOT NULL,
-	PRIMARY KEY (`recipy_id`, `user_id`),
-	CONSTRAINT `recipy_fk2` FOREIGN KEY (`recipy_id`) REFERENCES `recipy` (`id`) ON DELETE CASCADE,
-	CONSTRAINT `user_fk2` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;

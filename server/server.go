@@ -74,21 +74,8 @@ func (s *Server) router() chi.Router {
 
 	r.Route("/recipes", func(sr chi.Router) {
 		sr.Get("/", s.GetPublicRecipes)
-		sr.Get("/{userId}", s.GetUserRecipes)
-
-		sr.Route("/{recipyId}", func(ssr chi.Router) {
-			ssr.Get("/", s.GetRecipy)
-			ssr.Route("/ratings", func(sssr chi.Router) {
-				sssr.Get("/", s.GetRecipyRatings)
-
-				sssr.Group(func(ssssr chi.Router) {
-					ssssr.Use(s.authorize(false))
-					ssssr.Post("/", s.CreateRating)
-					ssssr.Patch("/", s.UpdateRating)
-					ssssr.Delete("/", s.DeleteRating)
-				})
-			})
-		})
+		sr.Get("/{recipyID}", s.GetRecipy)
+		sr.Get("/user/{userId}", s.GetUserRecipes)
 
 		sr.Group(func(ssr chi.Router) {
 			ssr.Use(s.authorize(false))
