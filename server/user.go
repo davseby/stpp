@@ -13,159 +13,73 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (s *Server) Register(w http.ResponseWriter, r *http.Request) {
+// CreateAdminUser creates an admin user with provided credentials.
+func (s *Server) CreateAdminUser(w http.ResponseWriter, r *http.Request) {
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		apierr.DataFormat(apierr.RequestData).Respond(w)
 		return
 	}
 
-	var uc core.UserCore
-	if err := json.Unmarshal(data, &uc); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid JSON object"))
+	var ui core.UserInput
+	if err := json.Unmarshal(data, &ui); err != nil {
+		apierr.DataFormat(apierr.JSONData).Respond(w)
 		return
 	}
 
-	if err := uc.Validate(); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+	if aerr := ui.Validate(); aerr != nil {
+		aerr.Respond(w)
 		return
 	}
 
-	_, err = db.GetUserByName(r.Context(), s.db, uc.Name)
-	switch err {
-	case db.ErrNotFound:
-		// OK.
-	case nil:
-		w.WriteHeader(http.StatusConflict)
-		return
-	case r.Context().Err():
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	default:
-		s.log.WithError(err).Error("fetching user by name")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	ph, err := bcrypt.GenerateFromPassword([]byte(uc.Password), bcrypt.DefaultCost)
+	ph, err := bcrypt.GenerateFromPassword([]byte(ui.Password), bcrypt.DefaultCost)
 	if err != nil {
-		s.log.WithError(err).Error("generating bcrypt password")
-		w.WriteHeader(http.StatusInternalServerError)
+		s.log.WithError(err).Error("generating bcrypt hash")
+		apierr.Internal().Respond(w)
 		return
 	}
 
-	user, err := db.InsertUser(
+	usr, err := db.InsertUser(
 		r.Context(),
 		s.db,
-		uc.Name,
+		ui.Name,
 		ph,
-		false,
+		true,
 	)
 	switch err {
 	case nil:
 		// OK.
 	case r.Context().Err():
-		w.WriteHeader(http.StatusBadRequest)
+		apierr.Context().Respond(w)
 		return
 	default:
 		s.log.WithError(err).Error("creating a new user")
-		w.WriteHeader(http.StatusInternalServerError)
+		apierr.Internal().Respond(w)
 		return
 	}
 
-	signedJWT, err := core.IssueJWT(s.secret, user.ID, user.Admin, time.Now())
-	if err != nil {
-		s.log.WithError(err).Error("creating jwt")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	s.respondJSON(w, struct {
-		User        *core.User `json:"user"`
-		AccessToken string     `json:"access_token"`
-	}{
-		User:        user,
-		AccessToken: string(signedJWT),
-	})
+	s.respondJSON(w, usr)
 }
 
-func (s *Server) Login(w http.ResponseWriter, r *http.Request) {
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	var uc core.UserCore
-	if err := json.Unmarshal(data, &uc); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid JSON object"))
-		return
-	}
-
-	user, err := db.GetUserByName(r.Context(), s.db, uc.Name)
-	switch err {
-	case nil:
-		// OK.
-	case r.Context().Err(), db.ErrNotFound:
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("user"))
-		return
-	default:
-		s.log.WithError(err).Error("fetching user by name")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	err = bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(uc.Password))
-	switch err {
-	case nil:
-		// OK.
-	case bcrypt.ErrMismatchedHashAndPassword:
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid password"))
-		return
-	default:
-		s.log.WithError(err).Error("comparing bcrypt password")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	signedJWT, err := core.IssueJWT(s.secret, user.ID, user.Admin, time.Now())
-	if err != nil {
-		s.log.WithError(err).Error("creating jwt")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	s.respondJSON(w, struct {
-		User        *core.User `json:"user"`
-		AccessToken string     `json:"access_token"`
-	}{
-		User:        user,
-		AccessToken: string(signedJWT),
-	})
-}
-
+// GetUsers retrieves all users.
 func (s *Server) GetUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := db.GetUsers(r.Context(), s.db)
+	uu, err := db.GetUsers(r.Context(), s.db)
 	switch err {
 	case nil:
 		// OK.
 	case r.Context().Err():
-		w.WriteHeader(http.StatusBadRequest)
+		apierr.Context().Respond(w)
 		return
 	default:
 		s.log.WithError(err).Error("fetching users")
-		w.WriteHeader(http.StatusInternalServerError)
+		apierr.Internal().Respond(w)
 		return
 	}
 
-	s.respondJSON(w, users)
+	s.respondJSON(w, uu)
 }
 
+// GetUser retrieves user by the user id.
 func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 	uid, aerr := s.extractContextUserID(r)
 	if aerr != nil {
@@ -178,21 +92,21 @@ func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 	case nil:
 		// OK.
 	case r.Context().Err():
-		w.WriteHeader(http.StatusBadRequest)
+		apierr.Context().Respond(w)
 		return
 	case db.ErrNotFound:
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("user"))
+		apierr.NotFound("user").Respond(w)
 		return
 	default:
 		s.log.WithError(err).Error("fetching user by id")
-		w.WriteHeader(http.StatusInternalServerError)
+		apierr.Internal().Respond(w)
 		return
 	}
 
 	s.respondJSON(w, usr)
 }
 
+// UpdateUserPassword updates user password.
 func (s *Server) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 	uid, aerr := s.extractContextUserID(r)
 	if aerr != nil {
@@ -202,18 +116,17 @@ func (s *Server) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		apierr.DataFormat(apierr.RequestData).Respond(w)
 		return
 	}
 
-	var input struct {
+	var inp struct {
 		Password    string `json:"password"`
 		OldPassword string `json:"old_password"`
 	}
 
-	if err := json.Unmarshal(data, &input); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid JSON object"))
+	if err := json.Unmarshal(data, &inp); err != nil {
+		apierr.DataFormat(apierr.JSONData).Respond(w)
 		return
 	}
 
@@ -222,38 +135,36 @@ func (s *Server) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 	case nil:
 		// OK.
 	case r.Context().Err():
-		w.WriteHeader(http.StatusBadRequest)
+		apierr.Context().Respond(w)
 		return
 	default:
 		s.log.WithError(err).Error("fetching user by id for password update")
-		w.WriteHeader(http.StatusInternalServerError)
+		apierr.Database().Respond(w)
 		return
 	}
 
-	err = bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(input.OldPassword))
+	err = bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(inp.OldPassword))
 	switch err {
 	case nil:
 		// OK.
 	case bcrypt.ErrMismatchedHashAndPassword:
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid password"))
+		apierr.BadRequest("invalid password")
 		return
 	default:
-		s.log.WithError(err).Error("comparing bcrypt password")
-		w.WriteHeader(http.StatusInternalServerError)
+		s.log.WithError(err).Error("comparing bcrypt hash to a password")
+		apierr.Internal().Respond(w)
 		return
 	}
 
-	if err := core.ValidatePassword(input.Password); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+	if aerr := core.ValidatePassword(inp.Password); aerr != nil {
+		aerr.Respond(w)
 		return
 	}
 
-	ph, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	ph, err := bcrypt.GenerateFromPassword([]byte(inp.Password), bcrypt.DefaultCost)
 	if err != nil {
-		s.log.WithError(err).Error("generating bcrypt password")
-		w.WriteHeader(http.StatusInternalServerError)
+		s.log.WithError(err).Error("generating bcrypt password hash")
+		apierr.Internal().Respond(w)
 		return
 	}
 
@@ -262,65 +173,20 @@ func (s *Server) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 	case nil:
 		// OK.
 	case r.Context().Err():
-		w.WriteHeader(http.StatusBadRequest)
+		apierr.Context().Respond(w)
 		return
 	default:
 		s.log.WithError(err).Error("updating user password")
-		w.WriteHeader(http.StatusInternalServerError)
+		apierr.Database().Respond(w)
 		return
 	}
 
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (s *Server) CreateAdminUser(w http.ResponseWriter, r *http.Request) {
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	var uc core.UserCore
-	if err := json.Unmarshal(data, &uc); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid JSON object"))
-		return
-	}
-
-	if err := uc.Validate(); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	ph, err := bcrypt.GenerateFromPassword([]byte(uc.Password), bcrypt.DefaultCost)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	user, err := db.InsertUser(
-		r.Context(),
-		s.db,
-		uc.Name,
-		ph,
-		true,
-	)
-	switch err {
-	case nil:
-		// OK.
-	case r.Context().Err():
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	default:
-		s.log.WithError(err).Error("creating a new user")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	s.respondJSON(w, user)
-}
-
+// DeleteUser deletes user. If the super user initiated the request the user
+// id is extracted from the path, otherwise the user id is extracted from
+// the context.
 func (s *Server) DeleteUser(super bool) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
@@ -354,22 +220,19 @@ func (s *Server) DeleteUser(super bool) func(http.ResponseWriter, *http.Request)
 			case nil:
 				// OK.
 			case r.Context().Err():
-				w.WriteHeader(http.StatusBadRequest)
+				apierr.Context().Respond(w)
 				return
 			case db.ErrNotFound:
-				w.WriteHeader(http.StatusNotFound)
-				w.Write([]byte("user"))
+				apierr.NotFound("user").Respond(w)
 				return
 			default:
 				s.log.WithError(err).Error("fetching user by id")
-				w.WriteHeader(http.StatusInternalServerError)
+				apierr.Database().Respond(w)
 				return
 			}
 
 			if usr.Name == core.RootAdminName {
-				apierr.BadRequest("cannot delete root admin").
-					Respond(w)
-
+				apierr.BadRequest("cannot delete root admin").Respond(w)
 				return
 			}
 		}
@@ -379,14 +242,147 @@ func (s *Server) DeleteUser(super bool) func(http.ResponseWriter, *http.Request)
 		case nil:
 			// OK.
 		case r.Context().Err():
-			w.WriteHeader(http.StatusBadRequest)
+			apierr.Context().Respond(w)
 			return
 		default:
 			s.log.WithError(err).Error("creating a new user")
-			w.WriteHeader(http.StatusInternalServerError)
+			apierr.Database().Respond(w)
 			return
 		}
 
 		w.WriteHeader(http.StatusNoContent)
 	}
+}
+
+// Login authenticates the user by its credentials and returns a JWT token.
+func (s *Server) Login(w http.ResponseWriter, r *http.Request) {
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		apierr.DataFormat(apierr.RequestData).Respond(w)
+		return
+	}
+
+	var ui core.UserInput
+	if err := json.Unmarshal(data, &ui); err != nil {
+		apierr.DataFormat(apierr.JSONData).Respond(w)
+		return
+	}
+
+	usr, err := db.GetUserByName(r.Context(), s.db, ui.Name)
+	switch err {
+	case nil:
+		// OK.
+	case r.Context().Err(), db.ErrNotFound:
+		apierr.Unauthorized().Respond(w)
+		return
+	default:
+		s.log.WithError(err).Error("fetching user by name")
+		apierr.Database().Respond(w)
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword(usr.PasswordHash, []byte(ui.Password))
+	switch err {
+	case nil:
+		// OK.
+	case bcrypt.ErrMismatchedHashAndPassword:
+		apierr.BadRequest("invalid password")
+		return
+	default:
+		s.log.WithError(err).Error("comparing bcrypt hash to a password")
+		apierr.Internal().Respond(w)
+		return
+	}
+
+	sjwt, err := core.IssueJWT(s.secret, usr.ID, usr.Admin, time.Now())
+	if err != nil {
+		s.log.WithError(err).Error("creating jwt")
+		apierr.Internal().Respond(w)
+		return
+	}
+
+	s.respondJSON(w, struct {
+		User        *core.User `json:"user"`
+		AccessToken string     `json:"access_token"`
+	}{
+		User:        usr,
+		AccessToken: string(sjwt),
+	})
+}
+
+// Register creates a new user by its credentials and retrieves a JWT token.
+func (s *Server) Register(w http.ResponseWriter, r *http.Request) {
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		apierr.DataFormat(apierr.RequestData).Respond(w)
+		return
+	}
+
+	var ui core.UserInput
+	if err := json.Unmarshal(data, &ui); err != nil {
+		apierr.DataFormat(apierr.JSONData).Respond(w)
+		return
+	}
+
+	if aerr := ui.Validate(); aerr != nil {
+		aerr.Respond(w)
+		return
+	}
+
+	_, err = db.GetUserByName(r.Context(), s.db, ui.Name)
+	switch err {
+	case db.ErrNotFound:
+		// OK.
+	case nil:
+		apierr.Conflict("user").Respond(w)
+		return
+	case r.Context().Err():
+		apierr.Context().Respond(w)
+		return
+	default:
+		s.log.WithError(err).Error("fetching user by name")
+		apierr.Database().Respond(w)
+		return
+	}
+
+	ph, err := bcrypt.GenerateFromPassword([]byte(ui.Password), bcrypt.DefaultCost)
+	if err != nil {
+		s.log.WithError(err).Error("generating bcrypt password hash")
+		apierr.Internal().Respond(w)
+		return
+	}
+
+	usr, err := db.InsertUser(
+		r.Context(),
+		s.db,
+		ui.Name,
+		ph,
+		false,
+	)
+	switch err {
+	case nil:
+		// OK.
+	case r.Context().Err():
+		apierr.Context().Respond(w)
+		return
+	default:
+		s.log.WithError(err).Error("creating a new user")
+		apierr.Database().Respond(w)
+		return
+	}
+
+	sjwt, err := core.IssueJWT(s.secret, usr.ID, usr.Admin, time.Now())
+	if err != nil {
+		s.log.WithError(err).Error("creating jwt")
+		apierr.Internal().Respond(w)
+		return
+	}
+
+	s.respondJSON(w, struct {
+		User        *core.User `json:"user"`
+		AccessToken string     `json:"access_token"`
+	}{
+		User:        usr,
+		AccessToken: string(sjwt),
+	})
 }

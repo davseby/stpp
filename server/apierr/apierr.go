@@ -3,7 +3,6 @@ package apierr
 import (
 	"fmt"
 	"net/http"
-
 )
 
 type Data int
@@ -37,6 +36,13 @@ func Forbidden() *Error {
 	}
 }
 
+func Conflict(object string) *Error {
+	return &Error{
+		statusCode: http.StatusBadRequest,
+		message:    object,
+	}
+}
+
 func Context() *Error {
 	return &Error{
 		statusCode: http.StatusBadRequest,
@@ -46,7 +52,7 @@ func Context() *Error {
 func NotFound(object string) *Error {
 	return &Error{
 		statusCode: http.StatusNotFound,
-		message: object,
+		message:    object,
 	}
 }
 
@@ -88,6 +94,6 @@ func DataFormat(dt Data) *Error {
 
 	return &Error{
 		statusCode: http.StatusBadRequest,
-		message: message,
+		message:    message,
 	}
 }

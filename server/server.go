@@ -117,26 +117,23 @@ func (s *Server) Version(w http.ResponseWriter, r *http.Request) {
 func (s *Server) authorize(super bool) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			signedJWT, aerr := s.extractAuthorizationToken(r)
+			sjwt, aerr := s.extractAuthorizationToken(r)
 			if aerr != nil {
 				aerr.Respond(w)
 				return
 			}
 
-			id, admin, err := core.ParseJWT(s.secret, signedJWT, time.Now())
-			switch err {
-			case nil:
-				// OK.
-			case core.ErrExpiredToken:
-				w.WriteHeader(http.StatusUnauthorized)
-				w.Write([]byte(err.Error()))
-				return
-			default:
-				w.WriteHeader(http.StatusUnauthorized)
+			id, admin, aerr := core.ParseJWT(s.secret, sjwt, time.Now())
+			if aerr != nil {
+				if aerr == apierr.Internal() {
+					s.log.WithField("token", sjwt).Error("parsing jwt token")
+				}
+
+				aerr.Respond(w)
 				return
 			}
 
-			_, err = db.GetUserByID(r.Context(), s.db, id)
+			_, err := db.GetUserByID(r.Context(), s.db, id)
 			switch err {
 			case nil:
 				// OK.

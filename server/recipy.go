@@ -47,7 +47,7 @@ func (s *Server) CreateRecipy(w http.ResponseWriter, r *http.Request) {
 		return
 	default:
 		s.log.WithError(err).Error("inserting a recipy")
-		apierr.Internal().Respond(w)
+		apierr.Database().Respond(w)
 		return
 	}
 
@@ -129,12 +129,14 @@ func (s *Server) GetRecipy(w http.ResponseWriter, r *http.Request) {
 		return
 	default:
 		s.log.WithError(err).Error("fetching recipy by id")
-		apierr.Internal().Respond(w)
+		apierr.Database().Respond(w)
 		return
 	}
 
-	if rec.UserID.Compare(uid) != 0 {
-		apierr.Forbidden().Respond(w)
+	// In case the user retrieves other users private recipy, we should
+	// protect it by saying that it was not found.
+	if rec.Private && rec.UserID.Compare(uid) != 0 {
+		apierr.NotFound("recipy").Respond(w)
 		return
 	}
 
@@ -174,11 +176,18 @@ func (s *Server) UpdateRecipy(w http.ResponseWriter, r *http.Request) {
 		return
 	default:
 		s.log.WithError(err).Error("fetching recipy by id")
-		apierr.Internal().Respond(w)
+		apierr.Database().Respond(w)
 		return
 	}
 
 	if rec.UserID.Compare(uid) != 0 {
+		// In case the user retrieves other users private recipy, we
+		// should protect it by saying that it was not found.
+		if rec.Private {
+			apierr.NotFound("recipy").Respond(w)
+			return
+		}
+
 		apierr.Forbidden().Respond(w)
 		return
 	}
@@ -206,7 +215,7 @@ func (s *Server) UpdateRecipy(w http.ResponseWriter, r *http.Request) {
 		return
 	default:
 		s.log.WithError(err).Error("creating a new recipy")
-		apierr.Internal().Respond(w)
+		apierr.Database().Respond(w)
 		return
 	}
 
@@ -247,11 +256,18 @@ func (s *Server) DeleteRecipy(w http.ResponseWriter, r *http.Request) {
 			return
 		default:
 			s.log.WithError(err).Error("fetching recipy by id")
-			apierr.Internal().Respond(w)
+			apierr.Database().Respond(w)
 			return
 		}
 
 		if rec.UserID.Compare(uid) != 0 {
+			// In case the user retrieves other users private recipy, we
+			// should protect it by saying that it was not found.
+			if rec.Private {
+				apierr.NotFound("recipy").Respond(w)
+				return
+			}
+
 			apierr.Forbidden().Respond(w)
 			return
 		}
@@ -266,7 +282,7 @@ func (s *Server) DeleteRecipy(w http.ResponseWriter, r *http.Request) {
 		return
 	default:
 		s.log.WithError(err).Error("deleting recipy by id")
-		apierr.Internal().Respond(w)
+		apierr.Database().Respond(w)
 		return
 	}
 

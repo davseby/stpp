@@ -37,7 +37,7 @@ func (s *Server) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	default:
 		s.log.WithError(err).Error("creating a new product")
-		apierr.Internal().Respond(w)
+		apierr.Database().Respond(w)
 		return
 	}
 
@@ -82,7 +82,7 @@ func (s *Server) GetProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	default:
 		s.log.WithError(err).Error("fetching product by id")
-		apierr.Internal().Respond(w)
+		apierr.Database().Respond(w)
 		return
 	}
 
@@ -118,7 +118,7 @@ func (s *Server) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	default:
 		s.log.WithError(err).Error("updating product")
-		apierr.Internal().Respond(w)
+		apierr.Database().Respond(w)
 		return
 	}
 
@@ -142,7 +142,7 @@ func (s *Server) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	default:
 		s.log.WithError(err).Error("deleting product by id")
-		apierr.Internal().Respond(w)
+		apierr.Database().Respond(w)
 		return
 	}
 
