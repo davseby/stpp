@@ -9,6 +9,60 @@ import (
 	"github.com/rs/xid"
 )
 
+// InsertRecipy inserts a new recipy into the database.
+func InsertRecipy(
+	ctx context.Context,
+	db *sql.DB,
+	uid xid.ID,
+	rc core.RecipyCore,
+) (*core.Recipy, error) {
+
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	rec := core.Recipy{
+		ID:         xid.New(),
+		UserID:     uid,
+		RecipyCore: rc,
+	}
+
+	_, err = squirrel.ExecContextWith(
+		ctx,
+		tx,
+		squirrel.Insert("recipy").SetMap(map[string]interface{}{
+			"recipy.id":          rec.ID,
+			"recipy.user_id":     rec.UserID,
+			"recipy.name":        rec.Name,
+			"recipy.private":     rec.Private,
+			"recipy.description": rec.Description,
+		}),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, rp := range rc.Products {
+		rp.RecipyID = rec.ID
+
+		if err := upsertRecipyProduct(
+			ctx,
+			tx,
+			rp,
+		); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return &rec, nil
+}
+
 // GetRecipes retrieves all recipes. The ip paratemer
 // specifies whether the private recipes should be retrieved.
 func GetRecipes(
@@ -93,60 +147,6 @@ func GetRecipyByID(
 	return &rr[0], nil
 }
 
-// InsertRecipy inserts a new recipy into the database.
-func InsertRecipy(
-	ctx context.Context,
-	db *sql.DB,
-	uid xid.ID,
-	rc core.RecipyCore,
-) (*core.Recipy, error) {
-
-	tx, err := db.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
-
-	rec := core.Recipy{
-		ID:         xid.New(),
-		UserID:     uid,
-		RecipyCore: rc,
-	}
-
-	_, err = squirrel.ExecContextWith(
-		ctx,
-		tx,
-		squirrel.Insert("recipy").SetMap(map[string]interface{}{
-			"recipy.id":          rec.ID,
-			"recipy.user_id":     rec.UserID,
-			"recipy.name":        rec.Name,
-			"recipy.private":     rec.Private,
-			"recipy.description": rec.Description,
-		}),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, rp := range rc.Products {
-		rp.RecipyID = rec.ID
-
-		if err := upsertRecipyProduct(
-			ctx,
-			tx,
-			rp,
-		); err != nil {
-			return nil, err
-		}
-	}
-
-	if err := tx.Commit(); err != nil {
-		return nil, err
-	}
-
-	return &rec, nil
-}
-
 // UpdateRecipyByID updates an existing recipy by its id. An updated recipy
 // is returned.
 func UpdateRecipyByID(
@@ -194,12 +194,12 @@ func UpdateRecipyByID(
 		),
 	)
 
-	rec, err := GetRecipyByID(ctx, tx, id, true)
-	if err != nil {
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 
-	if err := tx.Commit(); err != nil {
+	rec, err := GetRecipyByID(ctx, db, id, true)
+	if err != nil {
 		return nil, err
 	}
 

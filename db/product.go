@@ -8,42 +8,7 @@ import (
 	"github.com/rs/xid"
 )
 
-func GetProducts(ctx context.Context, qc squirrel.QueryerContext) ([]core.Product, error) {
-	return selectProducts(
-		ctx,
-		qc,
-		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
-			return sb
-		},
-	)
-}
-
-func GetProductByID(
-	ctx context.Context,
-	qc squirrel.QueryerContext,
-	id xid.ID,
-) (*core.Product, error) {
-
-	products, err := selectProducts(
-		ctx,
-		qc,
-		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
-			return sb.Where(
-				squirrel.Eq{"product.id": id},
-			)
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(products) == 0 {
-		return nil, ErrNotFound
-	}
-
-	return &products[0], nil
-}
-
+// InsertProduct inserts a new product into the database.
 func InsertProduct(
 	ctx context.Context,
 	ec squirrel.ExecerContext,
@@ -73,16 +38,56 @@ func InsertProduct(
 	return &product, nil
 }
 
+// GetProducts retrieves all products.
+func GetProducts(ctx context.Context, qc squirrel.QueryerContext) ([]core.Product, error) {
+	return selectProducts(
+		ctx,
+		qc,
+		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
+			return sb
+		},
+	)
+}
+
+// GetProductByID retrieves a product by the product id.
+func GetProductByID(
+	ctx context.Context,
+	qc squirrel.QueryerContext,
+	id xid.ID,
+) (*core.Product, error) {
+
+	products, err := selectProducts(
+		ctx,
+		qc,
+		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
+			return sb.Where(
+				squirrel.Eq{"product.id": id},
+			)
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(products) == 0 {
+		return nil, ErrNotFound
+	}
+
+	return &products[0], nil
+}
+
+// UpdateProductByID updates an existing recipy by its id. An updated product
+// is returned.
 func UpdateProductByID(
 	ctx context.Context,
-	ec squirrel.ExecerContext,
+	ssc squirrel.StdSqlCtx,
 	id xid.ID,
 	pc core.ProductCore,
-) error {
+) (*core.Product, error) {
 
 	_, err := squirrel.ExecContextWith(
 		ctx,
-		ec,
+		ssc,
 		squirrel.Update("product").SetMap(map[string]interface{}{
 			"product.name":             pc.Name,
 			"product.serving_type":     pc.Serving.Type,
@@ -92,9 +97,19 @@ func UpdateProductByID(
 			squirrel.Eq{"product.id": id},
 		),
 	)
-	return err
+	if err != nil {
+		return nil, err
+	}
+
+	prd, err := GetProductByID(ctx, ssc, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return prd, nil
 }
 
+// DeleteProductByID deletes a product by its id.
 func DeleteProductByID(
 	ctx context.Context,
 	ec squirrel.ExecerContext,
@@ -111,6 +126,7 @@ func DeleteProductByID(
 	return err
 }
 
+// selectProducts selects all products.
 func selectProducts(
 	ctx context.Context,
 	qc squirrel.QueryerContext,

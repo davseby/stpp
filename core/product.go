@@ -1,53 +1,73 @@
 package core
 
 import (
-	"errors"
+	"foodie/server/apierr"
 
 	"github.com/rs/xid"
 	"github.com/shopspring/decimal"
 )
 
+// ServingType specifies the product single serving type.
 type ServingType string
 
 const (
-	ServingTypeGrams       ServingType = "grams"
+	// ServingTypeGrams specifies the serving in grams.
+	ServingTypeGrams ServingType = "grams"
+
+	// ServingTypeMilliliters specifies the serving in milliliters.
 	ServingTypeMilliliters ServingType = "milliliters"
-	ServingTypeUnits       ServingType = "units"
+
+	// ServingTypeUnits specifies the serving in units.
+	ServingTypeUnits ServingType = "units"
 )
 
+// Product contains product data.
 type Product struct {
-	ID xid.ID `json:"id"`
 	ProductCore
+
+	// ID is a unique product identifier.
+	ID xid.ID `json:"id"`
 }
 
+// ProductCore contains core product information.
 type ProductCore struct {
-	Name    string  `json:"name"`
+	// Name specifies the name of the product.
+	Name string `json:"name"`
+
+	// Serving specifies the serving information of the product.
 	Serving Serving `json:"serving"`
 }
 
+// Serving specifies the serving information of the product.
 type Serving struct {
-	Type     ServingType     `json:"type"`
-	Size     decimal.Decimal `json:"size"`
+	// Types specifies the serving measurement type.
+	Type ServingType `json:"type"`
+
+	// Size specifies the amount in a single serving.
+	Size decimal.Decimal `json:"size"`
+
+	// Calories specifies how many calories are in the single serving.
 	Calories decimal.Decimal `json:"calories"`
 }
 
-func (pc *ProductCore) Validate() error {
+// Validate checks whether product core contains valid attributes.
+func (pc *ProductCore) Validate() *apierr.Error {
 	if pc.Name == "" {
-		return errors.New("name cannot be empty")
+		return apierr.Attribute("name", "cannot be empty")
 	}
 
 	switch pc.Serving.Type {
 	case ServingTypeGrams, ServingTypeMilliliters, ServingTypeUnits:
 	default:
-		return errors.New("invalid serving type")
+		return apierr.Attribute("type", "must be of a valid type")
 	}
 
 	if pc.Serving.Size.Cmp(decimal.Zero) <= 0 {
-		return errors.New("serving size cannot be less or equal to 0")
+		return apierr.Attribute("size", "cannot be less or equal to 0")
 	}
 
 	if pc.Serving.Calories.IsNegative() {
-		return errors.New("serving calories cannot be less than 0")
+		return apierr.Attribute("name", "cannot be less than 0")
 	}
 
 	return nil

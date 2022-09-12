@@ -4,64 +4,92 @@ import (
 	"encoding/json"
 	"foodie/core"
 	"foodie/db"
+	"foodie/server/apierr"
 	"io"
 	"net/http"
 )
 
-// GetProducts retrieves all products.
-func (s *Server) GetProducts(w http.ResponseWriter, r *http.Request) {
-	products, err := db.GetProducts(r.Context(), s.db)
-	switch err {
-	case nil:
-		// OK.
-	case r.Context().Err():
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	default:
-		s.log.WithError(err).Error("fetching products")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	s.respondJSON(w, products)
-}
-
+// CreateProduct creates a product.
 func (s *Server) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		apierr.DataFormat(apierr.RequestData).Respond(w)
 		return
 	}
 
 	var pc core.ProductCore
 	if err := json.Unmarshal(data, &pc); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid JSON object"))
+		apierr.DataFormat(apierr.JSONData).Respond(w)
 		return
 	}
 
-	if err := pc.Validate(); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+	if aerr := pc.Validate(); aerr != nil {
+		aerr.Respond(w)
 		return
 	}
 
-	product, err := db.InsertProduct(r.Context(), s.db, pc)
+	prd, err := db.InsertProduct(r.Context(), s.db, pc)
 	switch err {
 	case nil:
 		// OK.
 	case r.Context().Err():
-		w.WriteHeader(http.StatusBadRequest)
+		apierr.Context().Respond(w)
 		return
 	default:
 		s.log.WithError(err).Error("creating a new product")
-		w.WriteHeader(http.StatusInternalServerError)
+		apierr.Internal().Respond(w)
 		return
 	}
 
-	s.respondJSON(w, product)
+	s.respondJSON(w, prd)
 }
 
+// GetProducts retrieves all products.
+func (s *Server) GetProducts(w http.ResponseWriter, r *http.Request) {
+	pp, err := db.GetProducts(r.Context(), s.db)
+	switch err {
+	case nil:
+		// OK.
+	case r.Context().Err():
+		apierr.Context().Respond(w)
+		return
+	default:
+		s.log.WithError(err).Error("fetching products")
+		apierr.Database().Respond(w)
+		return
+	}
+
+	s.respondJSON(w, pp)
+}
+
+// GetProduct retrieves a single product by its id.
+func (s *Server) GetProduct(w http.ResponseWriter, r *http.Request) {
+	pid, aerr := s.extractPathID(r, "productId")
+	if aerr != nil {
+		aerr.Respond(w)
+		return
+	}
+
+	prd, err := db.GetProductByID(r.Context(), s.db, pid)
+	switch err {
+	case nil:
+		// OK.
+	case r.Context().Err():
+		apierr.Context().Respond(w)
+		return
+	case db.ErrNotFound:
+		apierr.NotFound("product").Respond(w)
+		return
+	default:
+		s.log.WithError(err).Error("fetching product by id")
+		apierr.Internal().Respond(w)
+		return
+	}
+
+	s.respondJSON(w, prd)
+}
+
+// UpdateProduct updates existing product by its id.
 func (s *Server) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	pid, aerr := s.extractPathID(r, "productId")
 	if aerr != nil {
@@ -71,49 +99,33 @@ func (s *Server) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		apierr.DataFormat(apierr.RequestData).Respond(w)
 		return
 	}
 
 	var pc core.ProductCore
 	if err := json.Unmarshal(data, &pc); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid JSON object"))
+		apierr.DataFormat(apierr.JSONData).Respond(w)
 		return
 	}
 
-	err = db.UpdateProductByID(r.Context(), s.db, pid, pc)
+	prd, err := db.UpdateProductByID(r.Context(), s.db, pid, pc)
 	switch err {
 	case nil:
 		// OK.
 	case r.Context().Err():
-		w.WriteHeader(http.StatusBadRequest)
+		apierr.Context().Respond(w)
 		return
 	default:
 		s.log.WithError(err).Error("updating product")
-		w.WriteHeader(http.StatusInternalServerError)
+		apierr.Internal().Respond(w)
 		return
 	}
 
-	product, err := db.GetProductByID(r.Context(), s.db, pid)
-	switch err {
-	case nil:
-		// OK.
-	case r.Context().Err():
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	case db.ErrNotFound:
-		s.log.WithError(err).Error("fetching product by id after its update")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	default:
-		s.log.WithError(err).Error("fetching product by id")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	s.respondJSON(w, product)
+	s.respondJSON(w, prd)
 }
+
+// DeleteProduct deletes existing product by its id.
 func (s *Server) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	pid, aerr := s.extractPathID(r, "productId")
 	if aerr != nil {
@@ -126,40 +138,13 @@ func (s *Server) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	case nil:
 		// OK.
 	case r.Context().Err():
-		w.WriteHeader(http.StatusBadRequest)
+		apierr.Context().Respond(w)
 		return
 	default:
 		s.log.WithError(err).Error("deleting product by id")
-		w.WriteHeader(http.StatusInternalServerError)
+		apierr.Internal().Respond(w)
 		return
 	}
 
 	w.WriteHeader(http.StatusNoContent)
-}
-
-func (s *Server) GetProduct(w http.ResponseWriter, r *http.Request) {
-	pid, aerr := s.extractPathID(r, "productId")
-	if aerr != nil {
-		aerr.Respond(w)
-		return
-	}
-
-	product, err := db.GetProductByID(r.Context(), s.db, pid)
-	switch err {
-	case nil:
-		// OK.
-	case r.Context().Err():
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	case db.ErrNotFound:
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("product"))
-		return
-	default:
-		s.log.WithError(err).Error("fetching product by id")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	s.respondJSON(w, product)
 }

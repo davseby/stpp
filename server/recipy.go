@@ -10,6 +10,50 @@ import (
 	"net/http"
 )
 
+// CreateRecipy creates a recipy.
+func (s *Server) CreateRecipy(w http.ResponseWriter, r *http.Request) {
+	uid, aerr := s.extractContextUserID(r)
+	if aerr != nil {
+		aerr.Respond(w)
+		return
+	}
+
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		apierr.DataFormat(apierr.RequestData).Respond(w)
+		return
+	}
+
+	var rc core.RecipyCore
+	if err := json.Unmarshal(data, &rc); err != nil {
+		apierr.DataFormat(apierr.JSONData).Respond(w)
+		return
+	}
+
+	if aerr := s.validateRecipyCore(r.Context(), rc); aerr != nil {
+		aerr.Respond(w)
+		return
+	}
+
+	rec, err := db.InsertRecipy(r.Context(), s.db, uid, rc)
+	switch err {
+	case nil:
+		// OK.
+	case r.Context().Err():
+		apierr.Context().Respond(w)
+		return
+	case db.ErrNotFound:
+		apierr.NotFound("product").Respond(w)
+		return
+	default:
+		s.log.WithError(err).Error("inserting a recipy")
+		apierr.Internal().Respond(w)
+		return
+	}
+
+	s.respondJSON(w, rec)
+}
+
 // GetPublicRecipes retrieves all public recipes.
 func (s *Server) GetPublicRecipes(w http.ResponseWriter, r *http.Request) {
 	rr, err := db.GetRecipes(r.Context(), s.db, false)
@@ -58,32 +102,22 @@ func (s *Server) GetUserRecipes(w http.ResponseWriter, r *http.Request) {
 	s.respondJSON(w, rr)
 }
 
-// CreateRecipy creates a recipy.
-func (s *Server) CreateRecipy(w http.ResponseWriter, r *http.Request) {
+// GetRecipy retrieves a single recipy by its id. The private recipes can be
+// retrieved only by the user that created them.
+func (s *Server) GetRecipy(w http.ResponseWriter, r *http.Request) {
+	rid, aerr := s.extractPathID(r, "recipyId")
+	if aerr != nil {
+		aerr.Respond(w)
+		return
+	}
+
 	uid, aerr := s.extractContextUserID(r)
 	if aerr != nil {
 		aerr.Respond(w)
 		return
 	}
 
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		apierr.DataFormat(apierr.RequestData).Respond(w)
-		return
-	}
-
-	var rc core.RecipyCore
-	if err := json.Unmarshal(data, &rc); err != nil {
-		apierr.DataFormat(apierr.JSONData).Respond(w)
-		return
-	}
-
-	if aerr := s.validateRecipyCore(r.Context(), rc); aerr != nil {
-		aerr.Respond(w)
-		return
-	}
-
-	rec, err := db.InsertRecipy(r.Context(), s.db, uid, rc)
+	rec, err := db.GetRecipyByID(r.Context(), s.db, rid, true)
 	switch err {
 	case nil:
 		// OK.
@@ -91,11 +125,16 @@ func (s *Server) CreateRecipy(w http.ResponseWriter, r *http.Request) {
 		apierr.Context().Respond(w)
 		return
 	case db.ErrNotFound:
-		apierr.NotFound("product").Respond(w)
+		apierr.NotFound("recipy").Respond(w)
 		return
 	default:
-		s.log.WithError(err).Error("inserting a recipy")
+		s.log.WithError(err).Error("fetching recipy by id")
 		apierr.Internal().Respond(w)
+		return
+	}
+
+	if rec.UserID.Compare(uid) != 0 {
+		apierr.Forbidden().Respond(w)
 		return
 	}
 
@@ -160,15 +199,14 @@ func (s *Server) UpdateRecipy(w http.ResponseWriter, r *http.Request) {
 	case nil:
 		// OK.
 	case r.Context().Err():
-		w.WriteHeader(http.StatusBadRequest)
+		apierr.Context().Respond(w)
 		return
 	case db.ErrNotFound:
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("product"))
+		apierr.NotFound("product").Respond(w)
 		return
 	default:
 		s.log.WithError(err).Error("creating a new recipy")
-		w.WriteHeader(http.StatusInternalServerError)
+		apierr.Internal().Respond(w)
 		return
 	}
 
@@ -233,45 +271,6 @@ func (s *Server) DeleteRecipy(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
-}
-
-// GetRecipy retrieves a single recipy by its id. The private recipes can be
-// retrieved only by the user that created them.
-func (s *Server) GetRecipy(w http.ResponseWriter, r *http.Request) {
-	rid, aerr := s.extractPathID(r, "recipyId")
-	if aerr != nil {
-		aerr.Respond(w)
-		return
-	}
-
-	uid, aerr := s.extractContextUserID(r)
-	if aerr != nil {
-		aerr.Respond(w)
-		return
-	}
-
-	rec, err := db.GetRecipyByID(r.Context(), s.db, rid, true)
-	switch err {
-	case nil:
-		// OK.
-	case r.Context().Err():
-		apierr.Context().Respond(w)
-		return
-	case db.ErrNotFound:
-		apierr.NotFound("recipy").Respond(w)
-		return
-	default:
-		s.log.WithError(err).Error("fetching recipy by id")
-		apierr.Internal().Respond(w)
-		return
-	}
-
-	if rec.UserID.Compare(uid) != 0 {
-		apierr.Forbidden().Respond(w)
-		return
-	}
-
-	s.respondJSON(w, rec)
 }
 
 // validateRecipyCore validates recipy core attributes.
