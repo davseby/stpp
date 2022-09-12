@@ -8,6 +8,7 @@ import (
 	"net/http"
 )
 
+// GetProducts retrieves all products.
 func (s *Server) GetProducts(w http.ResponseWriter, r *http.Request) {
 	products, err := db.GetProducts(r.Context(), s.db)
 	switch err {
@@ -62,10 +63,9 @@ func (s *Server) CreateProduct(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) UpdateProduct(w http.ResponseWriter, r *http.Request) {
-	pid, ok := extractPathID(r, "productId")
-	if !ok {
-		s.log.Error("extracting context user id data")
-		w.WriteHeader(http.StatusInternalServerError)
+	pid, aerr := s.extractPathID(r, "productId")
+	if aerr != nil {
+		aerr.Respond(w)
 		return
 	}
 
@@ -115,9 +115,9 @@ func (s *Server) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	s.respondJSON(w, product)
 }
 func (s *Server) DeleteProduct(w http.ResponseWriter, r *http.Request) {
-	pid, ok := extractPathID(r, "productId")
-	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
+	pid, aerr := s.extractPathID(r, "productId")
+	if aerr != nil {
+		aerr.Respond(w)
 		return
 	}
 
@@ -138,9 +138,9 @@ func (s *Server) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetProduct(w http.ResponseWriter, r *http.Request) {
-	pid, ok := extractPathID(r, "productId")
-	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
+	pid, aerr := s.extractPathID(r, "productId")
+	if aerr != nil {
+		aerr.Respond(w)
 		return
 	}
 

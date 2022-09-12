@@ -1,134 +1,161 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"foodie/core"
 	"foodie/db"
+	"foodie/server/apierr"
 	"io"
 	"net/http"
 )
 
-func (s *Server) GetRecipies(w http.ResponseWriter, r *http.Request) {
-	recipies, err := db.GetRecipies(r.Context(), s.db)
+// GetPublicRecipes retrieves all public recipes.
+func (s *Server) GetPublicRecipes(w http.ResponseWriter, r *http.Request) {
+	rr, err := db.GetRecipes(r.Context(), s.db, false)
 	switch err {
 	case nil:
 		// OK.
 	case r.Context().Err():
-		w.WriteHeader(http.StatusBadRequest)
+		apierr.Context().Respond(w)
 		return
 	default:
-		s.log.WithError(err).Error("fetching recipies")
-		w.WriteHeader(http.StatusInternalServerError)
+		s.log.WithError(err).Error("fetching recipes")
+		apierr.Database().Respond(w)
 		return
 	}
 
-	s.respondJSON(w, recipies)
+	s.respondJSON(w, rr)
 }
 
+// GetUserRecipes retrieves user recipes. If the requested recipes are from
+// the user which created them, the private recipes are included.
+func (s *Server) GetUserRecipes(w http.ResponseWriter, r *http.Request) {
+	uid, aerr := s.extractPathID(r, "userId")
+	if aerr != nil {
+		aerr.Respond(w)
+		return
+	}
+
+	var ip bool
+	if cuid, aerr := s.extractContextUserID(r); aerr == nil && cuid.Compare(uid) == 0 {
+		ip = true
+	}
+
+	rr, err := db.GetRecipesByUserID(r.Context(), s.db, uid, ip)
+	switch err {
+	case nil:
+		// OK.
+	case r.Context().Err():
+		apierr.Context().Respond(w)
+		return
+	default:
+		s.log.WithError(err).Error("fetching recipes")
+		apierr.Database().Respond(w)
+		return
+	}
+
+	s.respondJSON(w, rr)
+}
+
+// CreateRecipy creates a recipy.
 func (s *Server) CreateRecipy(w http.ResponseWriter, r *http.Request) {
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+	uid, aerr := s.extractContextUserID(r)
+	if aerr != nil {
+		aerr.Respond(w)
 		return
 	}
 
-	uid, ok := extractContextUserID(r)
-	if !ok {
-		s.log.Error("extracting context user id data")
-		w.WriteHeader(http.StatusInternalServerError)
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		apierr.DataFormat(apierr.RequestData).Respond(w)
 		return
 	}
 
 	var rc core.RecipyCore
 	if err := json.Unmarshal(data, &rc); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid JSON object"))
+		apierr.DataFormat(apierr.JSONData).Respond(w)
 		return
 	}
 
-	if err := rc.Validate(); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+	if aerr := s.validateRecipyCore(r.Context(), rc); aerr != nil {
+		aerr.Respond(w)
 		return
 	}
 
-	recipy, err := db.InsertRecipy(r.Context(), s.db, uid, rc)
+	rec, err := db.InsertRecipy(r.Context(), s.db, uid, rc)
 	switch err {
 	case nil:
 		// OK.
 	case r.Context().Err():
-		w.WriteHeader(http.StatusBadRequest)
+		apierr.Context().Respond(w)
 		return
 	case db.ErrNotFound:
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("product"))
+		apierr.NotFound("product").Respond(w)
 		return
 	default:
-		s.log.WithError(err).Error("creating a new recipy")
-		w.WriteHeader(http.StatusInternalServerError)
+		s.log.WithError(err).Error("inserting a recipy")
+		apierr.Internal().Respond(w)
 		return
 	}
 
-	s.respondJSON(w, recipy)
+	s.respondJSON(w, rec)
 }
 
+// UpdateRecipy updates existing recipy by its id. The recipy can be
+// updated only by the user which created it.
 func (s *Server) UpdateRecipy(w http.ResponseWriter, r *http.Request) {
-	rid, ok := extractPathID(r, "recipyId")
-	if !ok {
-		s.log.Error("extracting context recipy id data")
-		w.WriteHeader(http.StatusInternalServerError)
+	rid, aerr := s.extractPathID(r, "recipyId")
+	if aerr != nil {
+		aerr.Respond(w)
+		return
+	}
+
+	uid, aerr := s.extractContextUserID(r)
+	if aerr != nil {
+		aerr.Respond(w)
 		return
 	}
 
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		apierr.DataFormat(apierr.RequestData).Respond(w)
 		return
 	}
 
-	uid, ok := extractContextUserID(r)
-	if !ok {
-		s.log.Error("extracting context user id data")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	recipy, err := db.GetRecipyByID(r.Context(), s.db, rid)
+	rec, err := db.GetRecipyByID(r.Context(), s.db, rid, true)
 	switch err {
 	case nil:
 		// OK.
 	case r.Context().Err():
-		w.WriteHeader(http.StatusBadRequest)
+		apierr.Context().Respond(w)
 		return
 	case db.ErrNotFound:
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("recipy"))
+		apierr.NotFound("recipy").Respond(w)
 		return
 	default:
 		s.log.WithError(err).Error("fetching recipy by id")
-		w.WriteHeader(http.StatusInternalServerError)
+		apierr.Internal().Respond(w)
 		return
 	}
 
-	if recipy.UserID.Compare(uid) != 0 {
-		w.WriteHeader(http.StatusForbidden)
+	if rec.UserID.Compare(uid) != 0 {
+		apierr.Forbidden().Respond(w)
 		return
 	}
 
 	var rc core.RecipyCore
 	if err := json.Unmarshal(data, &rc); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid JSON object"))
+		apierr.DataFormat(apierr.JSONData).Respond(w)
 		return
 	}
 
-	if err := rc.Validate(); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+	if aerr := s.validateRecipyCore(r.Context(), rc); aerr != nil {
+		aerr.Respond(w)
 		return
 	}
 
-	err = db.UpdateRecipyByID(r.Context(), s.db, rid, rc)
+	rec, err = db.UpdateRecipyByID(r.Context(), s.db, rid, rc)
 	switch err {
 	case nil:
 		// OK.
@@ -145,68 +172,49 @@ func (s *Server) UpdateRecipy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	recipy, err = db.GetRecipyByID(r.Context(), s.db, rid)
-	switch err {
-	case nil:
-		// OK.
-	case r.Context().Err():
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	case db.ErrNotFound:
-		s.log.WithError(err).Error("fetching recipy by id after its update")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("recipy"))
-		return
-	default:
-		s.log.WithError(err).Error("fetching recipy by id")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	s.respondJSON(w, recipy)
+	s.respondJSON(w, rec)
 }
 
+// DeleteRecipy deletes existing recipy by its id. The recipy can be deleted
+// only by an admin or the user that created it.
 func (s *Server) DeleteRecipy(w http.ResponseWriter, r *http.Request) {
-	rid, ok := extractPathID(r, "recipyId")
-	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
+	rid, aerr := s.extractPathID(r, "recipyId")
+	if aerr != nil {
+		aerr.Respond(w)
 		return
 	}
 
-	admin, ok := extractContextAdmin(r)
-	if !ok {
-		s.log.Error("extracting context admin data")
-		w.WriteHeader(http.StatusInternalServerError)
+	adm, aerr := s.extractContextAdmin(r)
+	if aerr != nil {
+		aerr.Respond(w)
 		return
 	}
 
-	if !admin {
-		uid, ok := extractContextUserID(r)
-		if !ok {
-			s.log.Error("extracting context user id data")
-			w.WriteHeader(http.StatusInternalServerError)
+	if !adm {
+		uid, aerr := s.extractContextUserID(r)
+		if aerr != nil {
+			aerr.Respond(w)
 			return
 		}
 
-		recipy, err := db.GetRecipyByID(r.Context(), s.db, rid)
+		rec, err := db.GetRecipyByID(r.Context(), s.db, rid, true)
 		switch err {
 		case nil:
 			// OK.
 		case r.Context().Err():
-			w.WriteHeader(http.StatusBadRequest)
+			apierr.Context().Respond(w)
 			return
 		case db.ErrNotFound:
-			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte("recipy"))
+			apierr.NotFound("recipy").Respond(w)
 			return
 		default:
 			s.log.WithError(err).Error("fetching recipy by id")
-			w.WriteHeader(http.StatusInternalServerError)
+			apierr.Internal().Respond(w)
 			return
 		}
 
-		if recipy.UserID.Compare(uid) != 0 {
-			w.WriteHeader(http.StatusForbidden)
+		if rec.UserID.Compare(uid) != 0 {
+			apierr.Forbidden().Respond(w)
 			return
 		}
 	}
@@ -216,40 +224,74 @@ func (s *Server) DeleteRecipy(w http.ResponseWriter, r *http.Request) {
 	case nil:
 		// OK.
 	case r.Context().Err():
-		w.WriteHeader(http.StatusBadRequest)
+		apierr.Context().Respond(w)
 		return
 	default:
 		s.log.WithError(err).Error("deleting recipy by id")
-		w.WriteHeader(http.StatusInternalServerError)
+		apierr.Internal().Respond(w)
 		return
 	}
 
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// GetRecipy retrieves a single recipy by its id. The private recipes can be
+// retrieved only by the user that created them.
 func (s *Server) GetRecipy(w http.ResponseWriter, r *http.Request) {
-	rid, ok := extractPathID(r, "recipyId")
-	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
+	rid, aerr := s.extractPathID(r, "recipyId")
+	if aerr != nil {
+		aerr.Respond(w)
 		return
 	}
 
-	recipy, err := db.GetRecipyByID(r.Context(), s.db, rid)
+	uid, aerr := s.extractContextUserID(r)
+	if aerr != nil {
+		aerr.Respond(w)
+		return
+	}
+
+	rec, err := db.GetRecipyByID(r.Context(), s.db, rid, true)
 	switch err {
 	case nil:
 		// OK.
 	case r.Context().Err():
-		w.WriteHeader(http.StatusBadRequest)
+		apierr.Context().Respond(w)
 		return
 	case db.ErrNotFound:
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("recipy"))
+		apierr.NotFound("recipy").Respond(w)
 		return
 	default:
 		s.log.WithError(err).Error("fetching recipy by id")
-		w.WriteHeader(http.StatusInternalServerError)
+		apierr.Internal().Respond(w)
 		return
 	}
 
-	s.respondJSON(w, recipy)
+	if rec.UserID.Compare(uid) != 0 {
+		apierr.Forbidden().Respond(w)
+		return
+	}
+
+	s.respondJSON(w, rec)
+}
+
+// validateRecipyCore validates recipy core attributes.
+func (s *Server) validateRecipyCore(ctx context.Context, rc core.RecipyCore) *apierr.Error {
+	pp, err := db.GetProducts(ctx, s.db)
+	switch err {
+	case nil:
+		// OK.
+	case ctx.Err():
+		return apierr.Context()
+	default:
+		s.log.WithError(err).Error("fetching products")
+		return apierr.Database()
+	}
+
+	for _, rp := range rc.Products {
+		if _, ok := rp.FindMatching(pp); !ok {
+			return apierr.NotFound("product")
+		}
+	}
+
+	return rc.Validate()
 }

@@ -24,12 +24,14 @@ var (
 )
 
 type User struct {
-	ID           xid.ID `json:"id"`
-	Name         string `json:"name"`
-	PasswordHash []byte `json:"-"`
-	Admin        bool   `json:"admin"`
-}
+	ID    xid.ID `json:"id"`
+	Name  string `json:"name"`
+	Admin bool   `json:"admin"`
 
+	// PasswordHash contains password hash information. It shouldn't be
+	// exposed to the clients.
+	PasswordHash []byte `json:"-"`
+}
 type UserCore struct {
 	Name     string `json:"name"`
 	Password string `json:"password"`

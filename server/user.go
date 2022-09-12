@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"foodie/core"
 	"foodie/db"
+	"foodie/server/apierr"
 	"io"
 	"net/http"
 	"time"
@@ -166,13 +167,13 @@ func (s *Server) GetUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
-	uid, ok := extractPathID(r, "userId")
-	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
+	uid, aerr := s.extractContextUserID(r)
+	if aerr != nil {
+		aerr.Respond(w)
 		return
 	}
 
-	user, err := db.GetUserByID(r.Context(), s.db, uid)
+	usr, err := db.GetUserByID(r.Context(), s.db, uid)
 	switch err {
 	case nil:
 		// OK.
@@ -189,14 +190,13 @@ func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.respondJSON(w, user)
+	s.respondJSON(w, usr)
 }
 
 func (s *Server) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
-	uid, ok := extractContextUserID(r)
-	if !ok {
-		s.log.Error("extracting context user id data")
-		w.WriteHeader(http.StatusInternalServerError)
+	uid, aerr := s.extractContextUserID(r)
+	if aerr != nil {
+		aerr.Respond(w)
 		return
 	}
 
@@ -324,34 +324,32 @@ func (s *Server) CreateAdminUser(w http.ResponseWriter, r *http.Request) {
 func (s *Server) DeleteUser(super bool) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
-			uid xid.ID
-			ok  bool
+			uid  xid.ID
+			aerr *apierr.Error
 		)
 
 		if !super {
-			uid, ok = extractContextUserID(r)
-			if !ok {
-				s.log.Error("extracting context user id data")
-				w.WriteHeader(http.StatusInternalServerError)
+			uid, aerr = s.extractContextUserID(r)
+			if aerr != nil {
+				aerr.Respond(w)
 				return
 			}
 		} else {
-			uid, ok = extractPathID(r, "userId")
-			if !ok {
-				w.WriteHeader(http.StatusBadRequest)
+			uid, aerr = s.extractPathID(r, "userId")
+			if aerr != nil {
+				aerr.Respond(w)
 				return
 			}
 		}
 
-		admin, ok := extractContextAdmin(r)
-		if !ok {
-			s.log.Error("extracting context admin data")
-			w.WriteHeader(http.StatusInternalServerError)
+		adm, aerr := s.extractContextAdmin(r)
+		if aerr != nil {
+			aerr.Respond(w)
 			return
 		}
 
-		if admin {
-			user, err := db.GetUserByID(r.Context(), s.db, uid)
+		if adm {
+			usr, err := db.GetUserByID(r.Context(), s.db, uid)
 			switch err {
 			case nil:
 				// OK.
@@ -368,9 +366,10 @@ func (s *Server) DeleteUser(super bool) func(http.ResponseWriter, *http.Request)
 				return
 			}
 
-			if user.Name == core.RootAdminName {
-				w.WriteHeader(http.StatusBadRequest)
-				w.Write([]byte("cannot delete root admin"))
+			if usr.Name == core.RootAdminName {
+				apierr.BadRequest("cannot delete root admin").
+					Respond(w)
+
 				return
 			}
 		}

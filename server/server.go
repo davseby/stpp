@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"foodie/core"
 	"foodie/db"
+	"foodie/server/apierr"
 	"net/http"
 	"strings"
 	"time"
@@ -71,8 +72,9 @@ func (s *Server) router() chi.Router {
 		})
 	})
 
-	r.Route("/recipies", func(sr chi.Router) {
-		sr.Get("/", s.GetRecipies)
+	r.Route("/recipes", func(sr chi.Router) {
+		sr.Get("/", s.GetPublicRecipes)
+		sr.Get("/{userId}", s.GetUserRecipes)
 
 		sr.Route("/{recipyId}", func(ssr chi.Router) {
 			ssr.Get("/", s.GetRecipy)
@@ -128,9 +130,9 @@ func (s *Server) Version(w http.ResponseWriter, r *http.Request) {
 func (s *Server) authorize(super bool) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			signedJWT, ok := extractAuthorizationToken(r)
-			if !ok {
-				w.WriteHeader(http.StatusUnauthorized)
+			signedJWT, aerr := s.extractAuthorizationToken(r)
+			if aerr != nil {
+				aerr.Respond(w)
 				return
 			}
 
@@ -202,49 +204,51 @@ func (s *Server) respondJSON(w http.ResponseWriter, obj any) {
 	}
 }
 
-func extractPathID(r *http.Request, key string) (xid.ID, bool) {
+func (s *Server) extractPathID(r *http.Request, key string) (xid.ID, *apierr.Error) {
 	sid := chi.URLParam(r, key)
 	if sid == "" {
-		return xid.NilID(), false
+		return xid.NilID(), apierr.BadRequest("invalid object path identification")
 	}
 
 	id, err := xid.FromString(sid)
 	if err != nil {
-		return xid.NilID(), false
+		return xid.NilID(), apierr.BadRequest("incorrect object identification format")
 	}
 
-	return id, true
+	return id, nil
 }
 
-func extractAuthorizationToken(r *http.Request) ([]byte, bool) {
+func (s *Server) extractAuthorizationToken(r *http.Request) ([]byte, *apierr.Error) {
 	value := r.Header.Get("Authorization")
 
 	parts := strings.SplitN(value, " ", 2)
 	if len(parts) != 2 || parts[0] != "Bearer" {
-		return nil, false
+		return nil, apierr.Unauthorized()
 	}
 
-	return []byte(parts[1]), true
+	return []byte(parts[1]), nil
 }
 
-func extractContextUserID(r *http.Request) (xid.ID, bool) {
+func (s *Server) extractContextUserID(r *http.Request) (xid.ID, *apierr.Error) {
 	vid := r.Context().Value(contextKeyID)
 
 	id, ok := vid.(xid.ID)
 	if vid == nil || !ok {
-		return xid.NilID(), false
+		s.log.Error("missing context user id value")
+		return xid.NilID(), apierr.Internal()
 	}
 
-	return id, true
+	return id, nil
 }
 
-func extractContextAdmin(r *http.Request) (bool, bool) {
+func (s *Server) extractContextAdmin(r *http.Request) (bool, *apierr.Error) {
 	vid := r.Context().Value(contextKeyAdmin)
 
 	admin, ok := vid.(bool)
 	if vid == nil || !ok {
-		return false, false
+		s.log.Error("missing context admin value")
+		return false, apierr.Internal()
 	}
 
-	return admin, true
+	return admin, nil
 }

@@ -6,30 +6,77 @@ import (
 	"foodie/core"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/go-sql-driver/mysql"
 	"github.com/rs/xid"
 )
 
-func GetRecipies(ctx context.Context, qc squirrel.QueryerContext) ([]core.Recipy, error) {
-	return selectRecipies(
+// GetRecipes retrieves all recipes. The ip paratemer
+// specifies whether the private recipes should be retrieved.
+func GetRecipes(
+	ctx context.Context,
+	qc squirrel.QueryerContext,
+	ip bool,
+) ([]core.Recipy, error) {
+
+	return selectRecipes(
 		ctx,
 		qc,
 		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
+			if !ip {
+				return sb.Where(
+					squirrel.Eq{"recipy.private": false},
+				)
+			}
+
 			return sb
 		},
 	)
 }
 
+// GetRecipesByUserID retrieves recipes by the user id. The ip paratemer
+// specifies whether the private recipes should be retrieved.
+func GetRecipesByUserID(
+	ctx context.Context,
+	qc squirrel.QueryerContext,
+	uid xid.ID,
+	ip bool,
+) ([]core.Recipy, error) {
+
+	return selectRecipes(
+		ctx,
+		qc,
+		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
+			if !ip {
+				sb = sb.Where(
+					squirrel.Eq{"recipy.private": false},
+				)
+			}
+
+			return sb.Where(
+				squirrel.Eq{"recipy.user_id": uid},
+			)
+		},
+	)
+}
+
+// GetRecipyByID retrieves a recipy by its id. The ip paratemer
+// specifies whether the private recipes should be retrieved.
 func GetRecipyByID(
 	ctx context.Context,
 	qc squirrel.QueryerContext,
 	id xid.ID,
+	ip bool,
 ) (*core.Recipy, error) {
 
-	recipies, err := selectRecipies(
+	rr, err := selectRecipes(
 		ctx,
 		qc,
 		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
+			if !ip {
+				sb = sb.Where(
+					squirrel.Eq{"recipy.private": false},
+				)
+			}
+
 			return sb.Where(
 				squirrel.Eq{"recipy.id": id},
 			)
@@ -39,13 +86,14 @@ func GetRecipyByID(
 		return nil, err
 	}
 
-	if len(recipies) == 0 {
+	if len(rr) == 0 {
 		return nil, ErrNotFound
 	}
 
-	return &recipies[0], nil
+	return &rr[0], nil
 }
 
+// InsertRecipy inserts a new recipy into the database.
 func InsertRecipy(
 	ctx context.Context,
 	db *sql.DB,
@@ -59,7 +107,7 @@ func InsertRecipy(
 	}
 	defer tx.Rollback()
 
-	recipy := core.Recipy{
+	rec := core.Recipy{
 		ID:         xid.New(),
 		UserID:     uid,
 		RecipyCore: rc,
@@ -69,10 +117,11 @@ func InsertRecipy(
 		ctx,
 		tx,
 		squirrel.Insert("recipy").SetMap(map[string]interface{}{
-			"recipy.id":          recipy.ID,
-			"recipy.user_id":     recipy.UserID,
-			"recipy.name":        recipy.Name,
-			"recipy.description": recipy.Description,
+			"recipy.id":          rec.ID,
+			"recipy.user_id":     rec.UserID,
+			"recipy.name":        rec.Name,
+			"recipy.private":     rec.Private,
+			"recipy.description": rec.Description,
 		}),
 	)
 	if err != nil {
@@ -80,17 +129,13 @@ func InsertRecipy(
 	}
 
 	for _, rp := range rc.Products {
-		rp.RecipyID = recipy.ID
+		rp.RecipyID = rec.ID
 
 		if err := upsertRecipyProduct(
 			ctx,
 			tx,
 			rp,
 		); err != nil {
-			if merr, ok := err.(*mysql.MySQLError); ok && merr.Number == 1452 {
-				return nil, ErrNotFound
-			}
-
 			return nil, err
 		}
 	}
@@ -99,28 +144,30 @@ func InsertRecipy(
 		return nil, err
 	}
 
-	return &recipy, nil
+	return &rec, nil
 }
 
+// UpdateRecipyByID updates an existing recipy by its id. An updated recipy
+// is returned.
 func UpdateRecipyByID(
 	ctx context.Context,
 	db *sql.DB,
 	id xid.ID,
 	rc core.RecipyCore,
-) error {
+) (*core.Recipy, error) {
 
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
-		return nil
+		return nil, nil
 	}
 	defer tx.Rollback()
 
-	if err := deleteRecipyProduct(
+	if err := deleteRecipyProducts(
 		ctx,
 		tx,
 		id,
 	); err != nil {
-		return err
+		return nil, err
 	}
 
 	for _, rp := range rc.Products {
@@ -131,11 +178,7 @@ func UpdateRecipyByID(
 			tx,
 			rp,
 		); err != nil {
-			if merr, ok := err.(*mysql.MySQLError); ok && merr.Number == 1452 {
-				return ErrNotFound
-			}
-
-			return err
+			return nil, err
 		}
 	}
 
@@ -144,19 +187,26 @@ func UpdateRecipyByID(
 		tx,
 		squirrel.Update("recipy").SetMap(map[string]interface{}{
 			"recipy.name":        rc.Name,
+			"recipy.private":     rc.Private,
 			"recipy.description": rc.Description,
 		}).Where(
 			squirrel.Eq{"recipy.id": id},
 		),
 	)
 
-	if err := tx.Commit(); err != nil {
-		return nil
+	rec, err := GetRecipyByID(ctx, tx, id, true)
+	if err != nil {
+		return nil, err
 	}
 
-	return err
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return rec, nil
 }
 
+// DeleteRecipyByID deletes a recipy by its id.
 func DeleteRecipyByID(
 	ctx context.Context,
 	ec squirrel.ExecerContext,
@@ -173,7 +223,8 @@ func DeleteRecipyByID(
 	return err
 }
 
-func selectRecipies(
+// selectRecipes selects all recipes.
+func selectRecipes(
 	ctx context.Context,
 	qc squirrel.QueryerContext,
 	dec func(squirrel.SelectBuilder) squirrel.SelectBuilder,
@@ -184,6 +235,7 @@ func selectRecipies(
 			"recipy.id",
 			"recipy.user_id",
 			"recipy.name",
+			"recipy.private",
 			"recipy.description",
 		).From("recipy"),
 	))
@@ -192,30 +244,32 @@ func selectRecipies(
 	}
 	defer rows.Close()
 
-	recipies := make([]core.Recipy, 0)
+	rr := make([]core.Recipy, 0)
 	for rows.Next() {
-		var recipy core.Recipy
+		var rec core.Recipy
 		if err := rows.Scan(
-			&recipy.ID,
-			&recipy.UserID,
-			&recipy.Name,
-			&recipy.Description,
+			&rec.ID,
+			&rec.UserID,
+			&rec.Name,
+			&rec.Private,
+			&rec.Description,
 		); err != nil {
 			return nil, err
 		}
 
-		recipyProducts, err := getRecipyProductsByRecipyID(ctx, qc, recipy.ID)
+		rps, err := getRecipyProductsByRecipyID(ctx, qc, rec.ID)
 		if err != nil {
 			return nil, err
 		}
 
-		recipy.Products = recipyProducts
-		recipies = append(recipies, recipy)
+		rec.Products = rps
+		rr = append(rr, rec)
 	}
 
-	return recipies, nil
+	return rr, nil
 }
 
+// getRecipyProductsByRecipyID selects recipy products by the recipy id.
 func getRecipyProductsByRecipyID(
 	ctx context.Context,
 	qc squirrel.QueryerContext,
@@ -233,7 +287,8 @@ func getRecipyProductsByRecipyID(
 	)
 }
 
-func deleteRecipyProduct(
+// deleteRecipyProducts deletes all recipy products.
+func deleteRecipyProducts(
 	ctx context.Context,
 	ec squirrel.ExecerContext,
 	rid xid.ID,
@@ -249,6 +304,7 @@ func deleteRecipyProduct(
 	return err
 }
 
+// upsertRecipyProduct upserts recipy products.
 func upsertRecipyProduct(
 	ctx context.Context,
 	ec squirrel.ExecerContext,
@@ -267,6 +323,7 @@ func upsertRecipyProduct(
 	return err
 }
 
+// selectRecipyProducts selects all recipy products.
 func selectRecipyProducts(
 	ctx context.Context,
 	qc squirrel.QueryerContext,
@@ -285,19 +342,19 @@ func selectRecipyProducts(
 	}
 	defer rows.Close()
 
-	recipyProducts := make([]core.RecipyProduct, 0)
+	rps := make([]core.RecipyProduct, 0)
 	for rows.Next() {
-		var recipyProduct core.RecipyProduct
+		var rp core.RecipyProduct
 		if err := rows.Scan(
-			&recipyProduct.RecipyID,
-			&recipyProduct.ProductID,
-			&recipyProduct.Quantity,
+			&rp.RecipyID,
+			&rp.ProductID,
+			&rp.Quantity,
 		); err != nil {
 			return nil, err
 		}
 
-		recipyProducts = append(recipyProducts, recipyProduct)
+		rps = append(rps, rp)
 	}
 
-	return recipyProducts, nil
+	return rps, nil
 }

@@ -19,6 +19,7 @@ CREATE TABLE `product` (
 
 CREATE TABLE `recipy` (
 	`id` VARCHAR(20) NOT NULL,
+	`private` TINYINT(1) NOT NULL DEFAULT 1,
 	`user_id` VARCHAR(20) NOT NULL,
 	`name` VARCHAR(255) NOT NULL,
 	`description` VARCHAR(1023) NOT NULL,

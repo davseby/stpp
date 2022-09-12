@@ -1,42 +1,76 @@
 package core
 
 import (
-	"errors"
+	"foodie/server/apierr"
 
 	"github.com/rs/xid"
 	"github.com/shopspring/decimal"
 )
 
+// Recipy contains recipy data.
 type Recipy struct {
-	ID     xid.ID `json:"id"`
-	UserID xid.ID `json:"user_id"`
 	RecipyCore
+
+	// ID is a unique recipy identifier.
+	ID xid.ID `json:"id"`
+
+	// UserID specifies the user which created the recipy.
+	UserID xid.ID `json:"user_id"`
 }
 
+// RecipyCore contains core recipy information.
 type RecipyCore struct {
-	Name        string          `json:"name"`
-	Description string          `json:"description"`
-	Products    []RecipyProduct `json:"products"`
+	// Name specifies the name of the recipy.
+	Name string `json:"name"`
+
+	// Private specifies whether the recipy is private.
+	Private bool `json:"private"`
+
+	// Description provides a brief description of the recipy.
+	Description string `json:"description"`
+
+	// Products contains recipy products.
+	Products []RecipyProduct `json:"products"`
 }
 
-func (rc *RecipyCore) Validate() error {
+// Validate checks whether recipy core contains valid attributes.
+func (rc *RecipyCore) Validate() *apierr.Error {
 	if rc.Name == "" {
-		return errors.New("name cannot be empty")
+		return apierr.Attribute("name", "cannot be empty")
 	}
 
 	if rc.Description == "" {
-		return errors.New("description cannot be empty")
+		return apierr.Attribute("description", "cannot be empty")
 	}
 
 	if len(rc.Products) < 2 {
-		return errors.New("recipy must contain at least two product")
+		return apierr.Attribute("products", "must contains at least two elements")
 	}
 
 	return nil
 }
 
+// RecipyProduct maps recipy product with the actual product stored in the
+// system.
 type RecipyProduct struct {
-	RecipyID  xid.ID          `json:"-"`
-	ProductID xid.ID          `json:"product_id"`
-	Quantity  decimal.Decimal `json:"quantity"`
+	// RecipyID specifies the recipy id of the recipy that it belongs to.
+	RecipyID xid.ID `json:"-"`
+
+	// ProductID specifies the product id of the product.
+	ProductID xid.ID `json:"product_id"`
+
+	// Quantity specifies how much of a product should be used in the
+	// recipy.
+	Quantity decimal.Decimal `json:"quantity"`
+}
+
+// FindMatching finds the matching product based on the id.
+func (rp *RecipyProduct) FindMatching(products []Product) (Product, bool) {
+	for _, product := range products {
+		if product.ID == rp.ProductID {
+			return product, true
+		}
+	}
+
+	return Product{}, false
 }

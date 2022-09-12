@@ -9,9 +9,9 @@ import (
 )
 
 func (s *Server) GetRecipyRatings(w http.ResponseWriter, r *http.Request) {
-	rid, ok := extractPathID(r, "recipyId")
-	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
+	rid, aerr := s.extractPathID(r, "recipyId")
+	if aerr != nil {
+		aerr.Respond(w)
 		return
 	}
 
@@ -32,16 +32,15 @@ func (s *Server) GetRecipyRatings(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) CreateRating(w http.ResponseWriter, r *http.Request) {
-	rid, ok := extractPathID(r, "recipyId")
-	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
+	rid, aerr := s.extractPathID(r, "recipyId")
+	if aerr != nil {
+		aerr.Respond(w)
 		return
 	}
 
-	uid, ok := extractContextUserID(r)
-	if !ok {
-		s.log.Error("extracting context user id data")
-		w.WriteHeader(http.StatusInternalServerError)
+	uid, aerr := s.extractContextUserID(r)
+	if aerr != nil {
+		aerr.Respond(w)
 		return
 	}
 
@@ -64,7 +63,7 @@ func (s *Server) CreateRating(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	recipy, err := db.GetRecipyByID(r.Context(), s.db, rid)
+	recipy, err := db.GetRecipyByID(r.Context(), s.db, rid, false)
 	switch err {
 	case nil:
 		// OK.
@@ -108,16 +107,15 @@ func (s *Server) CreateRating(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) UpdateRating(w http.ResponseWriter, r *http.Request) {
-	rid, ok := extractPathID(r, "recipyId")
-	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
+	rid, aerr := s.extractPathID(r, "recipyId")
+	if aerr != nil {
+		aerr.Respond(w)
 		return
 	}
 
-	uid, ok := extractContextUserID(r)
-	if !ok {
-		s.log.Error("extracting context user id data")
-		w.WriteHeader(http.StatusInternalServerError)
+	uid, aerr := s.extractContextUserID(r)
+	if aerr != nil {
+		aerr.Respond(w)
 		return
 	}
 
@@ -184,16 +182,15 @@ func (s *Server) UpdateRating(w http.ResponseWriter, r *http.Request) {
 	s.respondJSON(w, rating)
 }
 func (s *Server) DeleteRating(w http.ResponseWriter, r *http.Request) {
-	rid, ok := extractPathID(r, "recipyId")
-	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
+	rid, aerr := s.extractPathID(r, "recipyId")
+	if aerr != nil {
+		aerr.Respond(w)
 		return
 	}
 
-	uid, ok := extractContextUserID(r)
-	if !ok {
-		s.log.Error("extracting context user id data")
-		w.WriteHeader(http.StatusInternalServerError)
+	uid, aerr := s.extractContextUserID(r)
+	if aerr != nil {
+		aerr.Respond(w)
 		return
 	}
 
