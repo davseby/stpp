@@ -223,7 +223,7 @@ func DeleteRecipyByID(
 	return err
 }
 
-// selectRecipes selects all recipes.
+// selectRecipes selects all recipes by the provided decorator function.
 func selectRecipes(
 	ctx context.Context,
 	qc squirrel.QueryerContext,
@@ -323,7 +323,8 @@ func upsertRecipyProduct(
 	return err
 }
 
-// selectRecipyProducts selects all recipy products.
+// selectRecipyProducts selects all recipy products by the provided decorator
+// function.
 func selectRecipyProducts(
 	ctx context.Context,
 	qc squirrel.QueryerContext,

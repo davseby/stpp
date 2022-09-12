@@ -8,68 +8,7 @@ import (
 	"github.com/rs/xid"
 )
 
-func GetUsers(ctx context.Context, qc squirrel.QueryerContext) ([]core.User, error) {
-	return selectUsers(
-		ctx,
-		qc,
-		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
-			return sb
-		},
-	)
-}
-
-func GetUserByName(
-	ctx context.Context,
-	qc squirrel.QueryerContext,
-	name string,
-) (*core.User, error) {
-
-	users, err := selectUsers(
-		ctx,
-		qc,
-		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
-			return sb.Where(
-				squirrel.Eq{"user.name": name},
-			)
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(users) == 0 {
-		return nil, ErrNotFound
-	}
-
-	return &users[0], nil
-}
-
-func GetUserByID(
-	ctx context.Context,
-	qc squirrel.QueryerContext,
-	id xid.ID,
-) (*core.User, error) {
-
-	users, err := selectUsers(
-		ctx,
-		qc,
-		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
-			return sb.Where(
-				squirrel.Eq{"user.id": id},
-			)
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(users) == 0 {
-		return nil, ErrNotFound
-	}
-
-	return &users[0], nil
-}
-
+// InsertProduct inserts a new user into the database.
 func InsertUser(
 	ctx context.Context,
 	ec squirrel.ExecerContext,
@@ -102,6 +41,72 @@ func InsertUser(
 	return &user, nil
 }
 
+// GetUsers retrieves all users.
+func GetUsers(ctx context.Context, qc squirrel.QueryerContext) ([]core.User, error) {
+	return selectUsers(
+		ctx,
+		qc,
+		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
+			return sb
+		},
+	)
+}
+
+// GetUserByName retrieves a user by name.
+func GetUserByName(
+	ctx context.Context,
+	qc squirrel.QueryerContext,
+	name string,
+) (*core.User, error) {
+
+	users, err := selectUsers(
+		ctx,
+		qc,
+		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
+			return sb.Where(
+				squirrel.Eq{"user.name": name},
+			)
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(users) == 0 {
+		return nil, ErrNotFound
+	}
+
+	return &users[0], nil
+}
+
+// GetUserByName retrieves a user by its id.
+func GetUserByID(
+	ctx context.Context,
+	qc squirrel.QueryerContext,
+	id xid.ID,
+) (*core.User, error) {
+
+	users, err := selectUsers(
+		ctx,
+		qc,
+		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
+			return sb.Where(
+				squirrel.Eq{"user.id": id},
+			)
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(users) == 0 {
+		return nil, ErrNotFound
+	}
+
+	return &users[0], nil
+}
+
+// UpdateUserPasswordByID updates user password by user id.
 func UpdateUserPasswordByID(
 	ctx context.Context,
 	ec squirrel.ExecerContext,
@@ -121,6 +126,7 @@ func UpdateUserPasswordByID(
 	return err
 }
 
+// DelteUserByID deletes user password by user id.
 func DeleteUserByID(
 	ctx context.Context,
 	ec squirrel.ExecerContext,
@@ -137,6 +143,7 @@ func DeleteUserByID(
 	return err
 }
 
+// selectProducts selects all users by the provided decorator function.
 func selectUsers(
 	ctx context.Context,
 	qc squirrel.QueryerContext,

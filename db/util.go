@@ -17,8 +17,12 @@ import (
 //go:embed sql
 var migrations embed.FS
 
+// ErrNotFound is returned whenever an object in the database is not found.
 var ErrNotFound = errors.New("not found")
 
+// Connect tries to establish a connection to the database by the provided
+// dsn string. Once the connection is established, it returns an API to
+// communicate with the database.
 func Connect(dsn string) (*sql.DB, error) {
 	cfg, err := mysql.ParseDSN(dsn)
 	if err != nil {
@@ -45,6 +49,9 @@ func Connect(dsn string) (*sql.DB, error) {
 	return db, nil
 }
 
+// Migrate tries to establish a connection the the database by the provided
+// dsn string. Once the connection is established, the migrations that are located
+// in the ./sql folder are ran.
 func Migrate(dsn string) error {
 	src, err := httpfs.New(http.FS(migrations), "sql")
 	if err != nil {

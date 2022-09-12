@@ -126,7 +126,7 @@ func DeleteProductByID(
 	return err
 }
 
-// selectProducts selects all products.
+// selectProducts selects all products by the provided decorator function.
 func selectProducts(
 	ctx context.Context,
 	qc squirrel.QueryerContext,
