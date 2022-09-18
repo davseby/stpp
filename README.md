@@ -1,5 +1,13 @@
 # Foodie (Saityno taikomųjų programų projektavimas)
 
+Modulio kodas: T120B165
+Dėstytojai:
+- Doc. Prakt. Rasa Mažutienė
+- Doc. Prakt. Petras Tamošiūnas
+
+Studentas:
+- Dovydas Bykovas, IFF-9/2 grupė
+
 Projekto tikslas - viešą maisto receptų bei jų planų kūrimo ir 
 dalijimosi platformą.
 
@@ -50,6 +58,21 @@ Administratorius funkcijos:
 - Ištrinti vartotoją ar administratorių.
 - Pasiimti vartotojų sąrašą.
 - Sukurti administracinį vartotoją.
+
+# Sistemos architektūra
+
+Aplikacijos frontend dalį sudaro JavaScript ir Vue 3 karkasas.
+Aplikacijos backend dalį sudaro Go programavimo kalba, naudojami Docker bei 
+docker-compose įrankiai bei MariaDB reliacinė duomenų bazė.
+
+Sistema patalpinta virtualiame serveryje, Digital Ocean debesų platformoje.
+Klientai norėdami naudotis sistema, pirmiausia gaus serveryje talpinamą
+statinį internetinės sąsajos failą - `index.html`. Faile esančios funkcijos
+ir metodai komunikuos su aplikacijos serveriu naudojant axios paketetą. 
+Browser ir backend procesai komunikuos HTTP aplikacijos lygio protokolu. 
+Backend nenaudos ORM įrankių ir komunikuos su duomenu baze tiesiogiai, rašant
+užklausas. Duomenų bazė bus paleista tame pačiame virtualiame serveryje, Docker
+konteineryje.
 
 # API aprašymas
 
@@ -112,9 +135,12 @@ Administratorius funkcijos:
 	}
 	```
 
+- Endpoint'ai, kuriems yra reikalinga authorizacija (prisijungimas), turi turėti `Authorization` header. Pavyzdys:
+`Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOnRydWUsImF1ZCI6ImZvb2RpZSIsImV4cCI6Ijk1NTc5NjQ2MCIsImlhdCI6Ijk1NTc5Mjg2MCIsImlzcyI6ImZvb2RpZSIsInN1YiI6IjczczNyODc2aTFlNzJuNGgzZDQwIn0.0O2UJyLoKD3q-3DcbWfBvRhCY8OF00Ko462JUUHiaNU"`
+
 ## Produktai
 
-- `GET` `/products/` - Produktų sąrašo pasiimimas.
+- `GET` `/products` - Produktų sąrašo pasiimimas.
 	- Reikia prisijungti: Ne
 	- Reikalingos administratoriaus teisės: Ne
 	- Užklausos informacija: Nėra
@@ -162,7 +188,7 @@ Administratorius funkcijos:
 	}
 	```
 
-- `POST` `/products/` - Produkto sukūrimas.
+- `POST` `/products` - Produkto sukūrimas.
 	- Reikia prisijungti: Taip
 	- Reikalingos administratoriaus teisės: Taip
 	- Užklausos informacija:
@@ -226,7 +252,7 @@ Administratorius funkcijos:
 
 ## Receptai
 
-- `GET` `/recipes/` - Receptų sąrašo pasiimimas.
+- `GET` `/recipes` - Receptų sąrašo pasiimimas.
 	- Reikia prisijungti: Ne
 	- Reikalingos administratoriaus teisės: Ne
 	- Užklausos informacija: Nėra
@@ -343,7 +369,7 @@ Administratorius funkcijos:
 	]
 	```
 
-- `POST` `/recipes/` - Recepto sukūrimas.
+- `POST` `/recipes` - Recepto sukūrimas.
 	- Reikia prisijungti: Taip
 	- Reikalingos administratoriaus teisės: Ne
 	- Užklausos informacija:
@@ -417,7 +443,7 @@ Administratorius funkcijos:
 
 ## Planai
 
-- `GET` `/plans/` - Planų sąrašo pasiimimas.
+- `GET` `/plans` - Planų sąrašo pasiimimas.
 	- Reikia prisijungti: Ne
 	- Reikalingos administratoriaus teisės: Ne
 	- Užklausos informacija: Nėra
@@ -538,7 +564,7 @@ Administratorius funkcijos:
 	]
 	```
 
-- `POST` `/plans/` - Plano sukūrimas.
+- `POST` `/plans` - Plano sukūrimas.
 	- Reikia prisijungti: Taip
 	- Reikalingos administratoriaus teisės: Ne
 	- Užklausos informacija:
@@ -612,13 +638,13 @@ Administratorius funkcijos:
 
 ## Vartotojai
 
-- `DELETE` `/users/` - Savo vartotojo ištrinimas.
+- `DELETE` `/users` - Savo vartotojo ištrinimas.
 	- Reikia prisijungti: Taip
 	- Reikalingos administratoriaus teisės: Ne
 	- Užklausos informacija: Nėra
 	- Atsakymo informacija: Nėra
 
-- `PATCH` `/users/` - Vartotojo slaptažodžio atnaujinimas.
+- `PATCH` `/users` - Vartotojo slaptažodžio atnaujinimas.
 	- Reikia prisijungti: Taip
 	- Reikalingos administratoriaus teisės: Ne
 	- Užklausos informacija:
@@ -631,7 +657,7 @@ Administratorius funkcijos:
 
 Atsakymo informacija: Nėra
 
-- `GET` `/users/` - Vartotojų pasiimimas.
+- `GET` `/users` - Vartotojų pasiimimas.
 	- Reikia prisijungti: Taip
 	- Reikalingos administratoriaus teisės: Taip
 	- Užklausos informacija: Nėra
@@ -653,7 +679,7 @@ Atsakymo informacija: Nėra
 	]
 	```
 
-- `POST` `/users/` - Administratoriaus vartotojo sukūrimas.
+- `POST` `/users` - Administratoriaus vartotojo sukūrimas.
 	- Reikia prisijungti: Taip
 	- Reikalingos administratoriaus teisės: Taip
 	- Užklausos informacija: 
