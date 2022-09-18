@@ -1,5 +1,3 @@
-# Foodie (Saityno taikomųjų programų projektavimas)
-
 Modulio kodas: T120B165
 Dėstytojai:
 - Doc. Prakt. Rasa Mažutienė
@@ -7,6 +5,8 @@ Dėstytojai:
 
 Studentas:
 - Dovydas Bykovas, IFF-9/2 grupė
+
+# Foodie (Saityno taikomųjų programų projektavimas)
 
 Projekto tikslas - viešą maisto receptų bei jų planų kūrimo ir 
 dalijimosi platformą.
@@ -73,6 +73,8 @@ Browser ir backend procesai komunikuos HTTP aplikacijos lygio protokolu.
 Backend nenaudos ORM įrankių ir komunikuos su duomenu baze tiesiogiai, rašant
 užklausas. Duomenų bazė bus paleista tame pačiame virtualiame serveryje, Docker
 konteineryje.
+
+![File](https://user-images.githubusercontent.com/58231312/190913623-01d242d5-cf43-4f82-9824-6cbe3586b6d3.jpg)
 
 # API aprašymas
 
