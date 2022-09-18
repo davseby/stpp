@@ -239,7 +239,25 @@ func (s *Server) DeleteRecipy(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err := db.DeleteRecipyByID(r.Context(), s.db, rid)
+	plans, err := db.GetPlanRecipesByRecipyID(r.Context(), s.db, rid)
+	switch err {
+	case nil:
+		// OK.
+	case r.Context().Err():
+		apierr.Context().Respond(w)
+		return
+	default:
+		s.log.WithError(err).Error("getting plan recipes by recipy id")
+		apierr.Database().Respond(w)
+		return
+	}
+
+	if len(plans) > 0 {
+		apierr.Conflict("recipy in use").Respond(w)
+		return
+	}
+
+	err = db.DeleteRecipyByID(r.Context(), s.db, rid)
 	switch err {
 	case nil:
 		// OK.

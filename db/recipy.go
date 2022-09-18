@@ -246,6 +246,24 @@ func selectRecipes(
 	return rr, nil
 }
 
+// GetRecipyProductsByPorudctID selects recipy products by the product id.
+func GetRecipyProductsByProductID(
+	ctx context.Context,
+	qc squirrel.QueryerContext,
+	id xid.ID,
+) ([]core.RecipyProduct, error) {
+
+	return selectRecipyProducts(
+		ctx,
+		qc,
+		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
+			return sb.Where(
+				squirrel.Eq{"recipy_products.product_id": id},
+			)
+		},
+	)
+}
+
 // getRecipyProductsByRecipyID selects recipy products by the recipy id.
 func getRecipyProductsByRecipyID(
 	ctx context.Context,

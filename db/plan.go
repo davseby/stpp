@@ -246,6 +246,24 @@ func selectPlans(
 	return pp, nil
 }
 
+// GetPlanRecipesByRecipyID selects plan recipes by the recipy id.
+func GetPlanRecipesByRecipyID(
+	ctx context.Context,
+	qc squirrel.QueryerContext,
+	id xid.ID,
+) ([]core.PlanRecipy, error) {
+
+	return selectPlanRecipes(
+		ctx,
+		qc,
+		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
+			return sb.Where(
+				squirrel.Eq{"plan_recipes.recipy_id": id},
+			)
+		},
+	)
+}
+
 // getPlanRecipesByPlanID selects plan recipes by the plan id.
 func getPlanRecipesByPlanID(
 	ctx context.Context,

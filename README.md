@@ -1,4 +1,5 @@
 Modulio kodas: T120B165
+
 Dėstytojai:
 - Doc. Prakt. Rasa Mažutienė
 - Doc. Prakt. Petras Tamošiūnas
@@ -11,9 +12,12 @@ Studentas:
 Projekto tikslas - viešą maisto receptų bei jų planų kūrimo ir 
 dalijimosi platformą.
 
-Veikimo principas - platformą sudaro internetinė sąsaja (frontend) ir serverio 
-aplikacija (backend). Internetinės sąsajos ir serverio aplikacija komunikacija 
-vyksta per RESTful API.
+Projekto veikimo principas - administratoriai kuria produktus iš kurių vartotojai
+kuria receptus, o iš receptų - maisto planus. Visa informacija yra viešai prieinama.
+
+Programiškas projekto veikimo principas - platformą sudaro internetinė sąsaja 
+(frontend) ir serverio aplikacija (backend). Internetinės sąsajos ir serverio 
+aplikacija komunikacija vyksta per RESTful API.
 
 Sistema turi tris vartotojų grupes:
 
@@ -138,7 +142,9 @@ konteineryje.
 	```
 
 - Endpoint'ai, kuriems yra reikalinga authorizacija (prisijungimas), turi turėti `Authorization` header. Pavyzdys:
-`Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOnRydWUsImF1ZCI6ImZvb2RpZSIsImV4cCI6Ijk1NTc5NjQ2MCIsImlhdCI6Ijk1NTc5Mjg2MCIsImlzcyI6ImZvb2RpZSIsInN1YiI6IjczczNyODc2aTFlNzJuNGgzZDQwIn0.0O2UJyLoKD3q-3DcbWfBvRhCY8OF00Ko462JUUHiaNU"`
+```
+Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOnRydWUsImF1ZCI6ImZvb2RpZSIsImV4cCI6Ijk1NTc5NjQ2MCIsImlhdCI6Ijk1NTc5Mjg2MCIsImlzcyI6ImZvb2RpZSIsInN1YiI6IjczczNyODc2aTFlNzJuNGgzZDQwIn0.0O2UJyLoKD3q-3DcbWfBvRhCY8OF00Ko462JUUHiaNU"
+```
 
 ## Produktai
 
@@ -656,8 +662,7 @@ konteineryje.
 		"old_password": "old_password"
 	}
 	```
-
-Atsakymo informacija: Nėra
+	- Atsakymo informacija: Nėra
 
 - `GET` `/users` - Vartotojų pasiimimas.
 	- Reikia prisijungti: Taip

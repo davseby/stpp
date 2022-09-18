@@ -42,12 +42,12 @@ INSERT INTO `products` (`id`, `name`, `serving_type`, `serving_size`, `serving_c
 
 CREATE TABLE `recipes` (
 	`id` VARCHAR(20) NOT NULL,
-	`user_id` VARCHAR(20) NOT NULL,
+	`user_id` VARCHAR(20),
 	`name` VARCHAR(255) NOT NULL,
 	`description` VARCHAR(1023) NOT NULL,
 	`created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	PRIMARY KEY (`id`),
-	CONSTRAINT `recipes_user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+	CONSTRAINT `recipes_user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `recipes` (`id`, `user_id`, `name`, `description`, `created_at`) VALUES 
@@ -60,7 +60,7 @@ CREATE TABLE `recipy_products` (
 	`quantity` DECIMAL(18, 4) NOT NULL,
 	PRIMARY KEY (`recipy_id`, `product_id`),
 	CONSTRAINT `recipy_products_recipy_fk` FOREIGN KEY (`recipy_id`) REFERENCES `recipes` (`id`) ON DELETE CASCADE,
-	CONSTRAINT `recipy_products_product_fk` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+	CONSTRAINT `recipy_products_product_fk` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `recipy_products` (`recipy_id`, `product_id`, `quantity`) VALUES 
@@ -76,12 +76,12 @@ INSERT INTO `recipy_products` (`recipy_id`, `product_id`, `quantity`) VALUES
 
 CREATE TABLE `plans` (
 	`id` VARCHAR(20) NOT NULL,
-	`user_id` VARCHAR(20) NOT NULL,
+	`user_id` VARCHAR(20),
 	`name` VARCHAR(255) NOT NULL,
 	`description` VARCHAR(1023) NOT NULL,
 	`created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	PRIMARY KEY (`id`),
-	CONSTRAINT `plans_user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+	CONSTRAINT `plans_user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `plans` (`id`, `user_id`, `name`, `description`, `created_at`) VALUES 
@@ -93,7 +93,7 @@ CREATE TABLE `plan_recipes` (
 	`quantity` INTEGER UNSIGNED NOT NULL,
 	PRIMARY KEY (`plan_id`, `recipy_id`),
 	CONSTRAINT `plan_recipes_plan_id_fk` FOREIGN KEY (`plan_id`) REFERENCES `plans` (`id`) ON DELETE CASCADE,
-	CONSTRAINT `plan_recipes_recipy_id_fk` FOREIGN KEY (`recipy_id`) REFERENCES `recipes` (`id`) ON DELETE CASCADE
+	CONSTRAINT `plan_recipes_recipy_id_fk` FOREIGN KEY (`recipy_id`) REFERENCES `recipes` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `plan_recipes` (`plan_id`, `recipy_id`, `quantity`) VALUES 

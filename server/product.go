@@ -133,7 +133,25 @@ func (s *Server) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := db.DeleteProductByID(r.Context(), s.db, pid)
+	recipes, err := db.GetRecipyProductsByProductID(r.Context(), s.db, pid)
+	switch err {
+	case nil:
+		// OK.
+	case r.Context().Err():
+		apierr.Context().Respond(w)
+		return
+	default:
+		s.log.WithError(err).Error("getting recipy products by product id")
+		apierr.Database().Respond(w)
+		return
+	}
+
+	if len(recipes) > 0 {
+		apierr.Conflict("product in use").Respond(w)
+		return
+	}
+
+	err = db.DeleteProductByID(r.Context(), s.db, pid)
 	switch err {
 	case nil:
 		// OK.
