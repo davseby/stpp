@@ -16,7 +16,7 @@ const (
 	jwtIssuer = "foodie"
 
 	// jwtExpiresAfter specifies how long the JWT tokens should last.
-	jwtExpiresAfter = time.Hour * 1
+	jwtExpiresAfter = time.Hour * 24
 )
 
 // IssueJWT issues a jwt token with the specified parameters. Returns a

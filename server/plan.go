@@ -268,7 +268,7 @@ func (s *Server) validatePlanCore(ctx context.Context, pc core.PlanCore) *apierr
 		return apierr.Database()
 	}
 
-	for _, pr := range pc.Recipies {
+	for _, pr := range pc.Recipes {
 		if _, ok := pr.FindMatching(rr); !ok {
 			return apierr.NotFound("recipy")
 		}

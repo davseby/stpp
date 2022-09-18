@@ -52,7 +52,8 @@ CREATE TABLE `recipes` (
 
 INSERT INTO `recipes` (`id`, `user_id`, `name`, `description`, `created_at`) VALUES 
 ("cciuk9v6i1e0rha6m580", "cciuk2v6i1e0qjrh0hu0", "Overnight Oats", "Healthy morning breakfast.", "2022-09-17 09:10:15"),
-("cciuomn6i1e14du2lbe0", "cciuk0n6i1e0q9d6pnf0", "Cocumber spread sandwitches", "Healthy, high protein snack.", "2022-09-18 23:29:00");
+("cciuomn6i1e14du2lbe0", "cciuk0n6i1e0q9d6pnf0", "Cocumber spread sandwitches", "Healthy, high protein snack.", "2022-09-18 23:29:00"),
+("ccjlpaf6i1e7tbfsih3g", NULL, "Baked Apples", "Healthy desert.", "2022-09-18 23:59:59");
 
 CREATE TABLE `recipy_products` (
 	`recipy_id` VARCHAR(20) NOT NULL,
@@ -72,7 +73,10 @@ INSERT INTO `recipy_products` (`recipy_id`, `product_id`, `quantity`) VALUES
 ("cciuk9v6i1e0rha6m580", "cciulu76i1e0vjpd3i2g", "0.33"),
 ("cciuomn6i1e14du2lbe0", "cciumsn6i1e11lv61jm0", "0.5"),
 ("cciuomn6i1e14du2lbe0", "cciunif6i1e12b5egfp0", "4"),
-("cciuomn6i1e14du2lbe0", "cciuo7n6i1e13guo332g", "1.3");
+("cciuomn6i1e14du2lbe0", "cciuo7n6i1e13guo332g", "1.3"),
+("ccjlpaf6i1e7tbfsih3g", "cciuibn6i1e0kff2evfg", "5"),
+("ccjlpaf6i1e7tbfsih3g", "cciugvv6i1e0ip637jpg", "0.2"),
+("ccjlpaf6i1e7tbfsih3g", "cciuhfv6i1e0jaucp6k0", "2");
 
 CREATE TABLE `plans` (
 	`id` VARCHAR(20) NOT NULL,
@@ -85,7 +89,8 @@ CREATE TABLE `plans` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `plans` (`id`, `user_id`, `name`, `description`, `created_at`) VALUES 
-("cciupgf6i1e15grnp640", "cciuk2v6i1e0qjrh0hu0", "Healthy lifestyle plan.", "Under 2000 calories per day.", "2022-09-18 23:40:00");
+("cciupgf6i1e15grnp640", "cciuk2v6i1e0qjrh0hu0", "Healthy lifestyle plan.", "Under 2000 calories per day.", "2022-09-18 23:40:00"),
+("ccjlq5f6i1e82gbco1jg", "cceqj5n6i1e7hgou9lv0", "A life made to enjoy.", "Sweet.", "2022-09-19 00:44:24");
 
 CREATE TABLE `plan_recipes` (
 	`plan_id` VARCHAR(20) NOT NULL,
@@ -98,4 +103,6 @@ CREATE TABLE `plan_recipes` (
 
 INSERT INTO `plan_recipes` (`plan_id`, `recipy_id`, `quantity`) VALUES 
 ("cciupgf6i1e15grnp640", "cciuk9v6i1e0rha6m580", "1"),
-("cciupgf6i1e15grnp640", "cciuomn6i1e14du2lbe0", "1");
+("cciupgf6i1e15grnp640", "cciuomn6i1e14du2lbe0", "3"),
+("ccjlq5f6i1e82gbco1jg", "cciuomn6i1e14du2lbe0", "4"),
+("ccjlq5f6i1e82gbco1jg", "ccjlpaf6i1e7tbfsih3g", "2");

@@ -1,0 +1,24 @@
+# Admin deletes in use recipy.
+http -A bearer --auth "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOnRydWUsImF1ZCI6ImZvb2RpZSIsImV4cCI6IjE2NjM1MjY1NTMiLCJpYXQiOiIxNjYzNTIyOTUzIiwiaXNzIjoiZm9vZGllIiwic3ViIjoiY2NlcWo1bjZpMWU3aGdvdTlsdjAifQ.42iprSrZWCXBj3zLzvIvrWlXTPwym8QMaxPwBTleHZ4" DELETE "localhost:13307/recipes/cciuomn6i1e14du2lbe0"
+
+# Admin deletes in use product.
+http -A bearer --auth "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOnRydWUsImF1ZCI6ImZvb2RpZSIsImV4cCI6IjE2NjM1MjY1NTMiLCJpYXQiOiIxNjYzNTIyOTUzIiwiaXNzIjoiZm9vZGllIiwic3ViIjoiY2NlcWo1bjZpMWU3aGdvdTlsdjAifQ.42iprSrZWCXBj3zLzvIvrWlXTPwym8QMaxPwBTleHZ4" DELETE "localhost:13307/products/cciuo7n6i1e13guo332g"
+
+# Root admin tries to delete itself.
+http -A bearer --auth "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOnRydWUsImF1ZCI6ImZvb2RpZSIsImV4cCI6IjE2NjM1MjY1NTMiLCJpYXQiOiIxNjYzNTIyOTUzIiwiaXNzIjoiZm9vZGllIiwic3ViIjoiY2NlcWo1bjZpMWU3aGdvdTlsdjAifQ.42iprSrZWCXBj3zLzvIvrWlXTPwym8QMaxPwBTleHZ4" DELETE "localhost:13307/users"
+
+# Admin selects users.
+http -A bearer --auth "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOnRydWUsImF1ZCI6ImZvb2RpZSIsImV4cCI6IjE2NjM1MjY1NTMiLCJpYXQiOiIxNjYzNTIyOTUzIiwiaXNzIjoiZm9vZGllIiwic3ViIjoiY2NlcWo1bjZpMWU3aGdvdTlsdjAifQ.42iprSrZWCXBj3zLzvIvrWlXTPwym8QMaxPwBTleHZ4" GET "localhost:13307/users"
+
+# User creates a recipy.
+http -A bearer --auth "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOmZhbHNlLCJhdWQiOiJmb29kaWUiLCJleHAiOiIxNjYzNTI2ODgwIiwiaWF0IjoiMTY2MzUyMzI4MCIsImlzcyI6ImZvb2RpZSIsInN1YiI6ImNjaXVrMG42aTFlMHE5ZDZwbmYwIn0.rViYe13kv4uATjShrStWNVxjrfAQx4fjuEqfzIlsjis" POST "localhost:13307/recipes" --raw '{"name":"Morning cereals","description":"Mix cereal with cashew milk.", "products":[{"quantity":0.5,"product_id":"cciulu76i1e0vjpd3i2g"},{"quantity":"3","product_id":"cciuf5f6i1e0e49j5750"}]}'
+
+# User updates a recipy.
+http -A bearer --auth "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOmZhbHNlLCJhdWQiOiJmb29kaWUiLCJleHAiOiIxNjYzNTI2ODgwIiwiaWF0IjoiMTY2MzUyMzI4MCIsImlzcyI6ImZvb2RpZSIsInN1YiI6ImNjaXVrMG42aTFlMHE5ZDZwbmYwIn0.rViYe13kv4uATjShrStWNVxjrfAQx4fjuEqfzIlsjis" PATCH "localhost:13307/recipes/ccjlkqv6i1e66cm0nc00" --raw '{"name":"Morning cereals","description":"Mix cereal with cashew milk in a bowl.", "products":[{"quantity":0.5,"product_id":"cciulu76i1e0vjpd3i2g"},{"quantity":"3","product_id":"cciuf5f6i1e0e49j5750"},{"quantity":0.2,"product_id":"cciufd76i1e0ea44drqg"}]}'
+
+# User creates a plan.
+http -A bearer --auth "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOmZhbHNlLCJhdWQiOiJmb29kaWUiLCJleHAiOiIxNjYzNTI2ODgwIiwiaWF0IjoiMTY2MzUyMzI4MCIsImlzcyI6ImZvb2RpZSIsInN1YiI6ImNjaXVrMG42aTFlMHE5ZDZwbmYwIn0.rViYe13kv4uATjShrStWNVxjrfAQx4fjuEqfzIlsjis" POST "localhost:13307/plans" --raw '{"name":"Hard monday morning","description":"Start the week with a calories bomb.", "recipes":[{"quantity":2,"recipy_id":"cciuk9v6i1e0rha6m580"},{"quantity":3,"recipy_id":"cciuomn6i1e14du2lbe0"}]}'
+
+# User updates a plan.
+http -A bearer --auth "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOmZhbHNlLCJhdWQiOiJmb29kaWUiLCJleHAiOiIxNjYzNTI2ODgwIiwiaWF0IjoiMTY2MzUyMzI4MCIsImlzcyI6ImZvb2RpZSIsInN1YiI6ImNjaXVrMG42aTFlMHE5ZDZwbmYwIn0.rViYe13kv4uATjShrStWNVxjrfAQx4fjuEqfzIlsjis" PATCH "localhost:13307/plans/ccjln0v6i1e66cm0nc0g" --raw '{"name":"Interesting monday morning","description":"Start the week with a calories bomb. For bulking.", "recipes":[{"quantity":4,"recipy_id":"cciuk9v6i1e0rha6m580"},{"quantity":1,"recipy_id":"cciuomn6i1e14du2lbe0"}]}'
+

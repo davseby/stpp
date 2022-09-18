@@ -46,7 +46,7 @@ func InsertPlan(
 		return nil, err
 	}
 
-	for _, pr := range pc.Recipies {
+	for _, pr := range pc.Recipes {
 		pr.PlanID = pl.ID
 
 		if err := upsertPlanRecipy(
@@ -148,7 +148,7 @@ func UpdatePlanByID(
 		return nil, err
 	}
 
-	for _, pr := range pc.Recipies {
+	for _, pr := range pc.Recipes {
 		pr.PlanID = id
 
 		if err := upsertPlanRecipy(
@@ -239,7 +239,7 @@ func selectPlans(
 			return nil, err
 		}
 
-		pl.Recipies = prs
+		pl.Recipes = prs
 		pp = append(pp, pl)
 	}
 

@@ -19,7 +19,7 @@ Programiškas projekto veikimo principas - platformą sudaro internetinė sąsaj
 (frontend) ir serverio aplikacija (backend). Internetinės sąsajos ir serverio 
 aplikacija komunikacija vyksta per RESTful API.
 
-Sistema turi tris vartotojų grupes:
+Sistema turi tris roles:
 
 - Svečias
 - Vartotojas
@@ -43,13 +43,13 @@ Vartotojo funkcijos:
 - Visos svečio funkcijos.
 - Prisijungti.
 - Sukurti receptą.
-- Atnaujinti receptą.
-- Ištrinti receptą.
+- Atnaujinti savo receptą.
+- Ištrinti savo receptą.
 - Sukurti planą.
-- Atnaujinti planą.
-- Ištrinti planą.
+- Atnaujinti savo planą.
+- Ištrinti savo planą.
 - Ištrinti savo vartotoją.
-- Pasikeisti slaptažodį.
+- Pasikeisti savo slaptažodį.
 
 Administratorius funkcijos:
 
@@ -62,6 +62,12 @@ Administratorius funkcijos:
 - Ištrinti vartotoją ar administratorių.
 - Pasiimti vartotojų sąrašą.
 - Sukurti administracinį vartotoją.
+
+Papildomos funkcijos:
+- Saugomas slaptažodis turi būti užšifruotas.
+- Negalima ištrinti pagrindinio administratoriaus.
+- Vartotojas negali ištrinti produkto ar recepto, jeigu jis yra naudojamas.
+- Jeigu yra ištrinamas vartotojas, jo receptai ir planai nenurodo sukurėjo identifikacijos.
 
 # Sistemos architektūra
 

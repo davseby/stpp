@@ -21,7 +21,7 @@ func Test_IssueJWT(t *testing.T) {
 
 	assert.Equal(
 		t,
-		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOnRydWUsImF1ZCI6ImZvb2RpZSIsImV4cCI6Ijk1NTc5NjQ2MCIsImlhdCI6Ijk1NTc5Mjg2MCIsImlzcyI6ImZvb2RpZSIsInN1YiI6IjczczNyODc2aTFlNzJuNGgzZDQwIn0.0O2UJyLoKD3q-3DcbWfBvRhCY8OF00Ko462JUUHiaNU",
+		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOnRydWUsImF1ZCI6ImZvb2RpZSIsImV4cCI6Ijk1NTg3OTI2MCIsImlhdCI6Ijk1NTc5Mjg2MCIsImlzcyI6ImZvb2RpZSIsInN1YiI6IjczczNyODc2aTFlNzJuNGgzZDQwIn0.noFyRlgCBts1kg3LJu8prEtWMoPz1tfJjkgiP_UPizk",
 		string(sjwt),
 	)
 }

@@ -106,7 +106,7 @@ func (s *Server) router() chi.Router {
 	r.Route("/plans", func(sr chi.Router) {
 		sr.Get("/", s.GetPlans)
 		sr.Get("/{planID}", s.GetPlan)
-		sr.Get("/user/{planID}", s.GetUserPlans)
+		sr.Get("/user/{userID}", s.GetUserPlans)
 
 		sr.Group(func(ssr chi.Router) {
 			ssr.Use(s.authorize(false))

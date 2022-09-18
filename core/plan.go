@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"foodie/server/apierr"
 	"time"
 
@@ -29,8 +30,8 @@ type PlanCore struct {
 	// Description provides a brief description of the plan.
 	Description string `json:"description"`
 
-	// Recipies contains plan recipies.
-	Recipies []PlanRecipy `json:"recipes"`
+	// Recipes contains plan recipies.
+	Recipes []PlanRecipy `json:"recipes"`
 }
 
 // Validate checks whether plan core contains valid attributes.
@@ -43,8 +44,14 @@ func (pc *PlanCore) Validate() *apierr.Error {
 		return apierr.InvalidAttribute("description", "cannot be empty")
 	}
 
-	if len(pc.Recipies) < 1 {
+	if len(pc.Recipes) < 1 {
 		return apierr.InvalidAttribute("products", "must contains at least one element")
+	}
+
+	for i, rec := range pc.Recipes {
+		if rec.Quantity == 0 {
+			return apierr.InvalidAttribute(fmt.Sprintf("recipes[%d].quantity", i), "must be positive")
+		}
 	}
 
 	return nil

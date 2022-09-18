@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"foodie/server/apierr"
 	"time"
 
@@ -46,6 +47,12 @@ func (rc *RecipyCore) Validate() *apierr.Error {
 
 	if len(rc.Products) < 2 {
 		return apierr.InvalidAttribute("products", "must contains at least two elements")
+	}
+
+	for i, prod := range rc.Products {
+		if !prod.Quantity.IsPositive() {
+			return apierr.InvalidAttribute(fmt.Sprintf("products[%d].quantity", i), "must be positive")
+		}
 	}
 
 	return nil

@@ -148,7 +148,7 @@ func (s *Server) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 	case nil:
 		// OK.
 	case bcrypt.ErrMismatchedHashAndPassword:
-		apierr.BadRequest("invalid password")
+		apierr.BadRequest("invalid password").Respond(w)
 		return
 	default:
 		s.log.WithError(err).Error("comparing bcrypt hash to a password")
@@ -286,7 +286,7 @@ func (s *Server) Login(w http.ResponseWriter, r *http.Request) {
 	case nil:
 		// OK.
 	case bcrypt.ErrMismatchedHashAndPassword:
-		apierr.BadRequest("invalid password")
+		apierr.BadRequest("invalid password").Respond(w)
 		return
 	default:
 		s.log.WithError(err).Error("comparing bcrypt hash to a password")

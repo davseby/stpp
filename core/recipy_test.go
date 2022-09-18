@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/rs/xid"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,14 +17,28 @@ func Test_RecipyCore_Validate(t *testing.T) {
 		"Invalid name": {
 			RecipyCore: RecipyCore{
 				Description: "123",
-				Products:    make([]RecipyProduct, 3),
+				Products: []RecipyProduct{
+					{
+						Quantity: decimal.NewFromInt(3),
+					},
+					{
+						Quantity: decimal.NewFromInt(3),
+					},
+				},
 			},
 			Error: apierr.InvalidAttribute("name", "cannot be empty"),
 		},
 		"Invalid description": {
 			RecipyCore: RecipyCore{
-				Name:     "333",
-				Products: make([]RecipyProduct, 3),
+				Name: "333",
+				Products: []RecipyProduct{
+					{
+						Quantity: decimal.NewFromInt(3),
+					},
+					{
+						Quantity: decimal.NewFromInt(3),
+					},
+				},
 			},
 			Error: apierr.InvalidAttribute("description", "cannot be empty"),
 		},
@@ -34,11 +49,33 @@ func Test_RecipyCore_Validate(t *testing.T) {
 			},
 			Error: apierr.InvalidAttribute("products", "must contains at least two elements"),
 		},
+		"Invalid products quantity": {
+			RecipyCore: RecipyCore{
+				Name:        "333",
+				Description: "123",
+				Products: []RecipyProduct{
+					{
+						Quantity: decimal.NewFromInt(3),
+					},
+					{
+						Quantity: decimal.NewFromInt(0),
+					},
+				},
+			},
+			Error: apierr.InvalidAttribute("products[1].quantity", "must be positive"),
+		},
 		"Valid recipy core": {
 			RecipyCore: RecipyCore{
 				Name:        "123",
 				Description: "123",
-				Products:    make([]RecipyProduct, 3),
+				Products: []RecipyProduct{
+					{
+						Quantity: decimal.NewFromInt(3),
+					},
+					{
+						Quantity: decimal.NewFromInt(3),
+					},
+				},
 			},
 		},
 	}
