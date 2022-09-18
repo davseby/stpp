@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"foodie/core"
+	"time"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/rs/xid"
@@ -26,18 +27,19 @@ func InsertRecipy(
 	rec := core.Recipy{
 		ID:         xid.New(),
 		UserID:     uid,
+		CreatedAt:  time.Now(),
 		RecipyCore: rc,
 	}
 
 	_, err = squirrel.ExecContextWith(
 		ctx,
 		tx,
-		squirrel.Insert("recipy").SetMap(map[string]interface{}{
-			"recipy.id":          rec.ID,
-			"recipy.user_id":     rec.UserID,
-			"recipy.name":        rec.Name,
-			"recipy.private":     rec.Private,
-			"recipy.description": rec.Description,
+		squirrel.Insert("recipes").SetMap(map[string]interface{}{
+			"recipes.id":          rec.ID,
+			"recipes.user_id":     rec.UserID,
+			"recipes.name":        rec.Name,
+			"recipes.description": rec.Description,
+			"recipes.created_at":  rec.CreatedAt,
 		}),
 	)
 	if err != nil {
@@ -63,76 +65,52 @@ func InsertRecipy(
 	return &rec, nil
 }
 
-// GetRecipes retrieves all recipes. The ip paratemer
-// specifies whether the private recipes should be retrieved.
+// GetRecipes retrieves all recipes.
 func GetRecipes(
 	ctx context.Context,
 	qc squirrel.QueryerContext,
-	ip bool,
 ) ([]core.Recipy, error) {
 
 	return selectRecipes(
 		ctx,
 		qc,
 		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
-			if !ip {
-				return sb.Where(
-					squirrel.Eq{"recipy.private": false},
-				)
-			}
-
 			return sb
 		},
 	)
 }
 
-// GetRecipesByUserID retrieves recipes by the user id. The ip paratemer
-// specifies whether the private recipes should be retrieved.
+// GetRecipesByUserID retrieves recipes by the user id.
 func GetRecipesByUserID(
 	ctx context.Context,
 	qc squirrel.QueryerContext,
 	uid xid.ID,
-	ip bool,
 ) ([]core.Recipy, error) {
 
 	return selectRecipes(
 		ctx,
 		qc,
 		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
-			if !ip {
-				sb = sb.Where(
-					squirrel.Eq{"recipy.private": false},
-				)
-			}
-
 			return sb.Where(
-				squirrel.Eq{"recipy.user_id": uid},
+				squirrel.Eq{"recipes.user_id": uid},
 			)
 		},
 	)
 }
 
-// GetRecipyByID retrieves a recipy by its id. The ip paratemer
-// specifies whether the private recipes should be retrieved.
+// GetRecipyByID retrieves a recipy by its id.
 func GetRecipyByID(
 	ctx context.Context,
 	qc squirrel.QueryerContext,
 	id xid.ID,
-	ip bool,
 ) (*core.Recipy, error) {
 
 	rr, err := selectRecipes(
 		ctx,
 		qc,
 		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
-			if !ip {
-				sb = sb.Where(
-					squirrel.Eq{"recipy.private": false},
-				)
-			}
-
 			return sb.Where(
-				squirrel.Eq{"recipy.id": id},
+				squirrel.Eq{"recipes.id": id},
 			)
 		},
 	)
@@ -185,12 +163,11 @@ func UpdateRecipyByID(
 	_, err = squirrel.ExecContextWith(
 		ctx,
 		tx,
-		squirrel.Update("recipy").SetMap(map[string]interface{}{
-			"recipy.name":        rc.Name,
-			"recipy.private":     rc.Private,
-			"recipy.description": rc.Description,
+		squirrel.Update("recipes").SetMap(map[string]interface{}{
+			"recipes.name":        rc.Name,
+			"recipes.description": rc.Description,
 		}).Where(
-			squirrel.Eq{"recipy.id": id},
+			squirrel.Eq{"recipes.id": id},
 		),
 	)
 
@@ -198,7 +175,7 @@ func UpdateRecipyByID(
 		return nil, err
 	}
 
-	rec, err := GetRecipyByID(ctx, db, id, true)
+	rec, err := GetRecipyByID(ctx, db, id)
 	if err != nil {
 		return nil, err
 	}
@@ -216,8 +193,8 @@ func DeleteRecipyByID(
 	_, err := squirrel.ExecContextWith(
 		ctx,
 		ec,
-		squirrel.Delete("recipy").Where(
-			squirrel.Eq{"recipy.id": id},
+		squirrel.Delete("recipes").Where(
+			squirrel.Eq{"recipes.id": id},
 		),
 	)
 	return err
@@ -232,12 +209,12 @@ func selectRecipes(
 
 	rows, err := squirrel.QueryContextWith(ctx, qc, dec(squirrel.
 		Select(
-			"recipy.id",
-			"recipy.user_id",
-			"recipy.name",
-			"recipy.private",
-			"recipy.description",
-		).From("recipy"),
+			"recipes.id",
+			"recipes.user_id",
+			"recipes.name",
+			"recipes.description",
+			"recipes.created_at",
+		).From("recipes"),
 	))
 	if err != nil {
 		return nil, err
@@ -251,8 +228,8 @@ func selectRecipes(
 			&rec.ID,
 			&rec.UserID,
 			&rec.Name,
-			&rec.Private,
 			&rec.Description,
+			&rec.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -281,7 +258,7 @@ func getRecipyProductsByRecipyID(
 		qc,
 		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
 			return sb.Where(
-				squirrel.Eq{"recipy_product.recipy_id": id},
+				squirrel.Eq{"recipy_products.recipy_id": id},
 			)
 		},
 	)
@@ -297,8 +274,8 @@ func deleteRecipyProducts(
 	_, err := squirrel.ExecContextWith(
 		ctx,
 		ec,
-		squirrel.Delete("recipy_product").Where(
-			squirrel.Eq{"recipy_product.recipy_id": rid},
+		squirrel.Delete("recipy_products").Where(
+			squirrel.Eq{"recipy_products.recipy_id": rid},
 		),
 	)
 	return err
@@ -314,11 +291,11 @@ func upsertRecipyProduct(
 	_, err := squirrel.ExecContextWith(
 		ctx,
 		ec,
-		squirrel.Insert("recipy_product").SetMap(map[string]interface{}{
-			"recipy_product.recipy_id":  rp.RecipyID,
-			"recipy_product.product_id": rp.ProductID,
-			"recipy_product.quantity":   rp.Quantity,
-		}).Suffix("ON DUPLICATE KEY UPDATE recipy_product.quantity = VALUES(recipy_product.quantity)"),
+		squirrel.Insert("recipy_products").SetMap(map[string]interface{}{
+			"recipy_products.recipy_id":  rp.RecipyID,
+			"recipy_products.product_id": rp.ProductID,
+			"recipy_products.quantity":   rp.Quantity,
+		}).Suffix("ON DUPLICATE KEY UPDATE recipy_products.quantity = VALUES(recipy_products.quantity)"),
 	)
 	return err
 }
@@ -333,10 +310,10 @@ func selectRecipyProducts(
 
 	rows, err := squirrel.QueryContextWith(ctx, qc, dec(squirrel.
 		Select(
-			"recipy_product.recipy_id",
-			"recipy_product.product_id",
-			"recipy_product.quantity",
-		).From("recipy_product"),
+			"recipy_products.recipy_id",
+			"recipy_products.product_id",
+			"recipy_products.quantity",
+		).From("recipy_products"),
 	))
 	if err != nil {
 		return nil, err

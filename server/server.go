@@ -80,26 +80,39 @@ func (s *Server) router() chi.Router {
 
 	r.Route("/products", func(sr chi.Router) {
 		sr.Get("/", s.GetProducts)
-		sr.Get("/{productId}", s.GetProduct)
+		sr.Get("/{productID}", s.GetProduct)
 
 		sr.Group(func(ssr chi.Router) {
 			ssr.Use(s.authorize(true))
 			ssr.Post("/", s.CreateProduct)
-			ssr.Patch("/{productId}", s.UpdateProduct)
-			ssr.Delete("/{productId}", s.DeleteProduct)
+			ssr.Patch("/{productID}", s.UpdateProduct)
+			ssr.Delete("/{productID}", s.DeleteProduct)
 		})
 	})
 
 	r.Route("/recipes", func(sr chi.Router) {
-		sr.Get("/", s.GetPublicRecipes)
+		sr.Get("/", s.GetRecipes)
 		sr.Get("/{recipyID}", s.GetRecipy)
-		sr.Get("/user/{userId}", s.GetUserRecipes)
+		sr.Get("/user/{userID}", s.GetUserRecipes)
 
 		sr.Group(func(ssr chi.Router) {
 			ssr.Use(s.authorize(false))
 			ssr.Post("/", s.CreateRecipy)
-			ssr.Patch("/{recipyId}", s.UpdateRecipy)
-			ssr.Delete("/{recipyId}", s.DeleteRecipy)
+			ssr.Patch("/{recipyID}", s.UpdateRecipy)
+			ssr.Delete("/{recipyID}", s.DeleteRecipy)
+		})
+	})
+
+	r.Route("/plans", func(sr chi.Router) {
+		sr.Get("/", s.GetPlans)
+		sr.Get("/{planID}", s.GetPlan)
+		sr.Get("/user/{planID}", s.GetUserPlans)
+
+		sr.Group(func(ssr chi.Router) {
+			ssr.Use(s.authorize(false))
+			ssr.Post("/", s.CreatePlan)
+			ssr.Patch("/{planID}", s.UpdatePlan)
+			ssr.Delete("/{planID}", s.DeletePlan)
 		})
 	})
 
@@ -114,8 +127,8 @@ func (s *Server) router() chi.Router {
 			ssr.Use(s.authorize(true))
 			ssr.Get("/", s.GetUsers)
 			ssr.Post("/", s.CreateAdminUser)
-			ssr.Get("/{userId}", s.GetUser)
-			ssr.Delete("/{userId}", s.DeleteUser(true))
+			ssr.Get("/{userID}", s.GetUser)
+			ssr.Delete("/{userID}", s.DeleteUser(true))
 		})
 	})
 

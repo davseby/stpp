@@ -10,8 +10,8 @@ import (
 	"net/http"
 )
 
-// CreateRecipy creates a recipy.
-func (s *Server) CreateRecipy(w http.ResponseWriter, r *http.Request) {
+// CreatePlan creates a plan.
+func (s *Server) CreatePlan(w http.ResponseWriter, r *http.Request) {
 	uid, aerr := s.extractContextUserID(r)
 	if aerr != nil {
 		aerr.Respond(w)
@@ -24,18 +24,18 @@ func (s *Server) CreateRecipy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var rc core.RecipyCore
-	if err := json.Unmarshal(data, &rc); err != nil {
+	var pc core.PlanCore
+	if err := json.Unmarshal(data, &pc); err != nil {
 		apierr.MalformedDataInput(apierr.DataTypeJSON).Respond(w)
 		return
 	}
 
-	if aerr := s.validateRecipyCore(r.Context(), rc); aerr != nil {
+	if aerr := s.validatePlanCore(r.Context(), pc); aerr != nil {
 		aerr.Respond(w)
 		return
 	}
 
-	rec, err := db.InsertRecipy(r.Context(), s.db, uid, rc)
+	pl, err := db.InsertPlan(r.Context(), s.db, uid, pc)
 	switch err {
 	case nil:
 		// OK.
@@ -43,20 +43,20 @@ func (s *Server) CreateRecipy(w http.ResponseWriter, r *http.Request) {
 		apierr.Context().Respond(w)
 		return
 	case db.ErrNotFound:
-		apierr.NotFound("product").Respond(w)
+		apierr.NotFound("recipy").Respond(w)
 		return
 	default:
-		s.log.WithError(err).Error("inserting a recipy")
+		s.log.WithError(err).Error("inserting a plan")
 		apierr.Database().Respond(w)
 		return
 	}
 
-	s.respondJSON(w, rec)
+	s.respondJSON(w, pl)
 }
 
-// GetRecipes retrieves all recipes.
-func (s *Server) GetRecipes(w http.ResponseWriter, r *http.Request) {
-	rr, err := db.GetRecipes(r.Context(), s.db)
+// GetPlans retrieves all plans.
+func (s *Server) GetPlans(w http.ResponseWriter, r *http.Request) {
+	pp, err := db.GetPlans(r.Context(), s.db)
 	switch err {
 	case nil:
 		// OK.
@@ -64,23 +64,23 @@ func (s *Server) GetRecipes(w http.ResponseWriter, r *http.Request) {
 		apierr.Context().Respond(w)
 		return
 	default:
-		s.log.WithError(err).Error("fetching recipes")
+		s.log.WithError(err).Error("fetching plans")
 		apierr.Database().Respond(w)
 		return
 	}
 
-	s.respondJSON(w, rr)
+	s.respondJSON(w, pp)
 }
 
-// GetUserRecipes retrieves user recipes.
-func (s *Server) GetUserRecipes(w http.ResponseWriter, r *http.Request) {
+// GetUserPlans retrieves user plans.
+func (s *Server) GetUserPlans(w http.ResponseWriter, r *http.Request) {
 	uid, aerr := s.extractPathID(r, "userID")
 	if aerr != nil {
 		aerr.Respond(w)
 		return
 	}
 
-	rr, err := db.GetRecipesByUserID(r.Context(), s.db, uid)
+	pp, err := db.GetPlansByUserID(r.Context(), s.db, uid)
 	switch err {
 	case nil:
 		// OK.
@@ -88,23 +88,23 @@ func (s *Server) GetUserRecipes(w http.ResponseWriter, r *http.Request) {
 		apierr.Context().Respond(w)
 		return
 	default:
-		s.log.WithError(err).Error("fetching recipes")
+		s.log.WithError(err).Error("fetching plans")
 		apierr.Database().Respond(w)
 		return
 	}
 
-	s.respondJSON(w, rr)
+	s.respondJSON(w, pp)
 }
 
-// GetRecipy retrieves a single recipy by its id.
-func (s *Server) GetRecipy(w http.ResponseWriter, r *http.Request) {
-	rid, aerr := s.extractPathID(r, "recipyID")
+// GetPlan retrieves a single plan by its id.
+func (s *Server) GetPlan(w http.ResponseWriter, r *http.Request) {
+	pid, aerr := s.extractPathID(r, "planID")
 	if aerr != nil {
 		aerr.Respond(w)
 		return
 	}
 
-	rec, err := db.GetRecipyByID(r.Context(), s.db, rid)
+	pl, err := db.GetPlanByID(r.Context(), s.db, pid)
 	switch err {
 	case nil:
 		// OK.
@@ -112,21 +112,21 @@ func (s *Server) GetRecipy(w http.ResponseWriter, r *http.Request) {
 		apierr.Context().Respond(w)
 		return
 	case db.ErrNotFound:
-		apierr.NotFound("recipy").Respond(w)
+		apierr.NotFound("plan").Respond(w)
 		return
 	default:
-		s.log.WithError(err).Error("fetching recipy by id")
+		s.log.WithError(err).Error("fetching planby id")
 		apierr.Database().Respond(w)
 		return
 	}
 
-	s.respondJSON(w, rec)
+	s.respondJSON(w, pl)
 }
 
-// UpdateRecipy updates existing recipy by its id. The recipy can be
+// UpdatePlan updates existing plan by its id. The plan can be
 // updated only by the user which created it.
-func (s *Server) UpdateRecipy(w http.ResponseWriter, r *http.Request) {
-	rid, aerr := s.extractPathID(r, "recipyID")
+func (s *Server) UpdatePlan(w http.ResponseWriter, r *http.Request) {
+	pid, aerr := s.extractPathID(r, "planID")
 	if aerr != nil {
 		aerr.Respond(w)
 		return
@@ -144,7 +144,39 @@ func (s *Server) UpdateRecipy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rec, err := db.GetRecipyByID(r.Context(), s.db, rid)
+	pl, err := db.GetPlanByID(r.Context(), s.db, pid)
+	switch err {
+	case nil:
+		// OK.
+	case r.Context().Err():
+		apierr.Context().Respond(w)
+		return
+	case db.ErrNotFound:
+		apierr.NotFound("plan").Respond(w)
+		return
+	default:
+		s.log.WithError(err).Error("fetching plan by id")
+		apierr.Database().Respond(w)
+		return
+	}
+
+	if pl.UserID.Compare(uid) != 0 {
+		apierr.Forbidden().Respond(w)
+		return
+	}
+
+	var pc core.PlanCore
+	if err := json.Unmarshal(data, &pc); err != nil {
+		apierr.MalformedDataInput(apierr.DataTypeJSON).Respond(w)
+		return
+	}
+
+	if aerr := s.validatePlanCore(r.Context(), pc); aerr != nil {
+		aerr.Respond(w)
+		return
+	}
+
+	pl, err = db.UpdatePlanByID(r.Context(), s.db, pid, pc)
 	switch err {
 	case nil:
 		// OK.
@@ -155,50 +187,18 @@ func (s *Server) UpdateRecipy(w http.ResponseWriter, r *http.Request) {
 		apierr.NotFound("recipy").Respond(w)
 		return
 	default:
-		s.log.WithError(err).Error("fetching recipy by id")
+		s.log.WithError(err).Error("creating a new plan")
 		apierr.Database().Respond(w)
 		return
 	}
 
-	if rec.UserID.Compare(uid) != 0 {
-		apierr.Forbidden().Respond(w)
-		return
-	}
-
-	var rc core.RecipyCore
-	if err := json.Unmarshal(data, &rc); err != nil {
-		apierr.MalformedDataInput(apierr.DataTypeJSON).Respond(w)
-		return
-	}
-
-	if aerr := s.validateRecipyCore(r.Context(), rc); aerr != nil {
-		aerr.Respond(w)
-		return
-	}
-
-	rec, err = db.UpdateRecipyByID(r.Context(), s.db, rid, rc)
-	switch err {
-	case nil:
-		// OK.
-	case r.Context().Err():
-		apierr.Context().Respond(w)
-		return
-	case db.ErrNotFound:
-		apierr.NotFound("product").Respond(w)
-		return
-	default:
-		s.log.WithError(err).Error("creating a new recipy")
-		apierr.Database().Respond(w)
-		return
-	}
-
-	s.respondJSON(w, rec)
+	s.respondJSON(w, pl)
 }
 
-// DeleteRecipy deletes existing recipy by its id. The recipy can be deleted
+// DeletePlan deletes existing plan by its id. The plan can be deleted
 // only by an admin or the user that created it.
-func (s *Server) DeleteRecipy(w http.ResponseWriter, r *http.Request) {
-	rid, aerr := s.extractPathID(r, "recipyID")
+func (s *Server) DeletePlan(w http.ResponseWriter, r *http.Request) {
+	pid, aerr := s.extractPathID(r, "planID")
 	if aerr != nil {
 		aerr.Respond(w)
 		return
@@ -217,7 +217,7 @@ func (s *Server) DeleteRecipy(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		rec, err := db.GetRecipyByID(r.Context(), s.db, rid)
+		pl, err := db.GetPlanByID(r.Context(), s.db, pid)
 		switch err {
 		case nil:
 			// OK.
@@ -225,21 +225,21 @@ func (s *Server) DeleteRecipy(w http.ResponseWriter, r *http.Request) {
 			apierr.Context().Respond(w)
 			return
 		case db.ErrNotFound:
-			apierr.NotFound("recipy").Respond(w)
+			apierr.NotFound("plan").Respond(w)
 			return
 		default:
-			s.log.WithError(err).Error("fetching recipy by id")
+			s.log.WithError(err).Error("fetching plan by id")
 			apierr.Database().Respond(w)
 			return
 		}
 
-		if rec.UserID.Compare(uid) != 0 {
+		if pl.UserID.Compare(uid) != 0 {
 			apierr.Forbidden().Respond(w)
 			return
 		}
 	}
 
-	err := db.DeleteRecipyByID(r.Context(), s.db, rid)
+	err := db.DeletePlanByID(r.Context(), s.db, pid)
 	switch err {
 	case nil:
 		// OK.
@@ -247,7 +247,7 @@ func (s *Server) DeleteRecipy(w http.ResponseWriter, r *http.Request) {
 		apierr.Context().Respond(w)
 		return
 	default:
-		s.log.WithError(err).Error("deleting recipy by id")
+		s.log.WithError(err).Error("deleting plan by id")
 		apierr.Database().Respond(w)
 		return
 	}
@@ -255,24 +255,24 @@ func (s *Server) DeleteRecipy(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// validateRecipyCore validates recipy core attributes.
-func (s *Server) validateRecipyCore(ctx context.Context, rc core.RecipyCore) *apierr.Error {
-	pp, err := db.GetProducts(ctx, s.db)
+// validatePlanCore validates plan core attributes.
+func (s *Server) validatePlanCore(ctx context.Context, pc core.PlanCore) *apierr.Error {
+	rr, err := db.GetRecipes(ctx, s.db)
 	switch err {
 	case nil:
 		// OK.
 	case ctx.Err():
 		return apierr.Context()
 	default:
-		s.log.WithError(err).Error("fetching products")
+		s.log.WithError(err).Error("fetching recipes")
 		return apierr.Database()
 	}
 
-	for _, rp := range rc.Products {
-		if _, ok := rp.FindMatching(pp); !ok {
-			return apierr.NotFound("product")
+	for _, pr := range pc.Recipies {
+		if _, ok := pr.FindMatching(rr); !ok {
+			return apierr.NotFound("recipy")
 		}
 	}
 
-	return rc.Validate()
+	return pc.Validate()
 }

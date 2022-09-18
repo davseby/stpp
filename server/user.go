@@ -201,7 +201,7 @@ func (s *Server) DeleteUser(super bool) func(http.ResponseWriter, *http.Request)
 				return
 			}
 		} else {
-			uid, aerr = s.extractPathID(r, "userId")
+			uid, aerr = s.extractPathID(r, "userID")
 			if aerr != nil {
 				aerr.Respond(w)
 				return

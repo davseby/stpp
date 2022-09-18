@@ -2,6 +2,7 @@ package core
 
 import (
 	"foodie/server/apierr"
+	"time"
 
 	"github.com/rs/xid"
 	"github.com/shopspring/decimal"
@@ -27,6 +28,9 @@ type Product struct {
 
 	// ID is a unique product identifier.
 	ID xid.ID `json:"id"`
+
+	// CreatedAt specifies a time at which the object was created.
+	CreatedAt time.Time `json:"created_at"`
 }
 
 // ProductCore contains core product information.

@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"foodie/core"
+	"time"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/rs/xid"
@@ -21,17 +22,19 @@ func InsertUser(
 		ID:           xid.New(),
 		Name:         name,
 		PasswordHash: ph,
+		CreatedAt:    time.Now(),
 		Admin:        adm,
 	}
 
 	_, err := squirrel.ExecContextWith(
 		ctx,
 		ec,
-		squirrel.Insert("user").SetMap(map[string]interface{}{
-			"user.id":            user.ID,
-			"user.name":          user.Name,
-			"user.password_hash": user.PasswordHash,
-			"user.admin":         user.Admin,
+		squirrel.Insert("users").SetMap(map[string]interface{}{
+			"users.id":            user.ID,
+			"users.name":          user.Name,
+			"users.password_hash": user.PasswordHash,
+			"users.admin":         user.Admin,
+			"users.created_at":    user.CreatedAt,
 		}),
 	)
 	if err != nil {
@@ -64,7 +67,7 @@ func GetUserByName(
 		qc,
 		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
 			return sb.Where(
-				squirrel.Eq{"user.name": name},
+				squirrel.Eq{"users.name": name},
 			)
 		},
 	)
@@ -91,7 +94,7 @@ func GetUserByID(
 		qc,
 		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
 			return sb.Where(
-				squirrel.Eq{"user.id": id},
+				squirrel.Eq{"users.id": id},
 			)
 		},
 	)
@@ -117,10 +120,10 @@ func UpdateUserPasswordByID(
 	_, err := squirrel.ExecContextWith(
 		ctx,
 		ec,
-		squirrel.Update("user").SetMap(map[string]interface{}{
-			"user.password_hash": ph,
+		squirrel.Update("users").SetMap(map[string]interface{}{
+			"users.password_hash": ph,
 		}).Where(
-			squirrel.Eq{"user.id": id},
+			squirrel.Eq{"users.id": id},
 		),
 	)
 	return err
@@ -136,8 +139,8 @@ func DeleteUserByID(
 	_, err := squirrel.ExecContextWith(
 		ctx,
 		ec,
-		squirrel.Delete("user").Where(
-			squirrel.Eq{"user.id": id},
+		squirrel.Delete("users").Where(
+			squirrel.Eq{"users.id": id},
 		),
 	)
 	return err
@@ -152,11 +155,12 @@ func selectUsers(
 
 	rows, err := squirrel.QueryContextWith(ctx, qc, dec(squirrel.
 		Select(
-			"user.id",
-			"user.name",
-			"user.password_hash",
-			"user.admin",
-		).From("user"),
+			"users.id",
+			"users.name",
+			"users.password_hash",
+			"users.admin",
+			"users.created_at",
+		).From("users"),
 	))
 	if err != nil {
 		return nil, err
@@ -171,6 +175,7 @@ func selectUsers(
 			&user.Name,
 			&user.PasswordHash,
 			&user.Admin,
+			&user.CreatedAt,
 		); err != nil {
 			return nil, err
 		}

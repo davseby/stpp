@@ -2,6 +2,7 @@ package core
 
 import (
 	"foodie/server/apierr"
+	"time"
 
 	"github.com/rs/xid"
 )
@@ -26,6 +27,9 @@ type User struct {
 	// PasswordHash contains password hash information. It shouldn't be
 	// exposed to the clients.
 	PasswordHash []byte `json:"-"`
+
+	// CreatedAt specifies a time at which the object was created.
+	CreatedAt time.Time `json:"created_at"`
 }
 
 // UserInput contains core user information that is used only when creating

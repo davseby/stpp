@@ -2,6 +2,7 @@ package core
 
 import (
 	"foodie/server/apierr"
+	"time"
 
 	"github.com/rs/xid"
 	"github.com/shopspring/decimal"
@@ -16,15 +17,15 @@ type Recipy struct {
 
 	// UserID specifies the user which created the recipy.
 	UserID xid.ID `json:"user_id"`
+
+	// CreatedAt specifies a time at which the object was created.
+	CreatedAt time.Time `json:"created_at"`
 }
 
 // RecipyCore contains core recipy information.
 type RecipyCore struct {
 	// Name specifies the name of the recipy.
 	Name string `json:"name"`
-
-	// Private specifies whether the recipy is private.
-	Private bool `json:"private"`
 
 	// Description provides a brief description of the recipy.
 	Description string `json:"description"`

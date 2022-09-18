@@ -64,7 +64,7 @@ func (s *Server) GetProducts(w http.ResponseWriter, r *http.Request) {
 
 // GetProduct retrieves a single product by its id.
 func (s *Server) GetProduct(w http.ResponseWriter, r *http.Request) {
-	pid, aerr := s.extractPathID(r, "productId")
+	pid, aerr := s.extractPathID(r, "productID")
 	if aerr != nil {
 		aerr.Respond(w)
 		return
@@ -91,7 +91,7 @@ func (s *Server) GetProduct(w http.ResponseWriter, r *http.Request) {
 
 // UpdateProduct updates existing product by its id.
 func (s *Server) UpdateProduct(w http.ResponseWriter, r *http.Request) {
-	pid, aerr := s.extractPathID(r, "productId")
+	pid, aerr := s.extractPathID(r, "productID")
 	if aerr != nil {
 		aerr.Respond(w)
 		return
@@ -127,7 +127,7 @@ func (s *Server) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 
 // DeleteProduct deletes existing product by its id.
 func (s *Server) DeleteProduct(w http.ResponseWriter, r *http.Request) {
-	pid, aerr := s.extractPathID(r, "productId")
+	pid, aerr := s.extractPathID(r, "productID")
 	if aerr != nil {
 		aerr.Respond(w)
 		return

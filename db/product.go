@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"foodie/core"
+	"time"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/rs/xid"
@@ -17,18 +18,20 @@ func InsertProduct(
 
 	product := core.Product{
 		ID:          xid.New(),
+		CreatedAt:   time.Now(),
 		ProductCore: pc,
 	}
 
 	_, err := squirrel.ExecContextWith(
 		ctx,
 		ec,
-		squirrel.Insert("product").SetMap(map[string]interface{}{
-			"product.id":               product.ID,
-			"product.name":             product.Name,
-			"product.serving_type":     product.Serving.Type,
-			"product.serving_size":     product.Serving.Size,
-			"product.serving_calories": product.Serving.Calories,
+		squirrel.Insert("products").SetMap(map[string]interface{}{
+			"products.id":               product.ID,
+			"products.name":             product.Name,
+			"products.serving_type":     product.Serving.Type,
+			"products.serving_size":     product.Serving.Size,
+			"products.serving_calories": product.Serving.Calories,
+			"products.created_at":       product.CreatedAt,
 		}),
 	)
 	if err != nil {
@@ -61,7 +64,7 @@ func GetProductByID(
 		qc,
 		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
 			return sb.Where(
-				squirrel.Eq{"product.id": id},
+				squirrel.Eq{"products.id": id},
 			)
 		},
 	)
@@ -88,13 +91,13 @@ func UpdateProductByID(
 	_, err := squirrel.ExecContextWith(
 		ctx,
 		ssc,
-		squirrel.Update("product").SetMap(map[string]interface{}{
-			"product.name":             pc.Name,
-			"product.serving_type":     pc.Serving.Type,
-			"product.serving_size":     pc.Serving.Size,
-			"product.serving_calories": pc.Serving.Calories,
+		squirrel.Update("products").SetMap(map[string]interface{}{
+			"products.name":             pc.Name,
+			"products.serving_type":     pc.Serving.Type,
+			"products.serving_size":     pc.Serving.Size,
+			"products.serving_calories": pc.Serving.Calories,
 		}).Where(
-			squirrel.Eq{"product.id": id},
+			squirrel.Eq{"products.id": id},
 		),
 	)
 	if err != nil {
@@ -119,8 +122,8 @@ func DeleteProductByID(
 	_, err := squirrel.ExecContextWith(
 		ctx,
 		ec,
-		squirrel.Delete("product").Where(
-			squirrel.Eq{"product.id": id},
+		squirrel.Delete("products").Where(
+			squirrel.Eq{"products.id": id},
 		),
 	)
 	return err
@@ -135,12 +138,13 @@ func selectProducts(
 
 	rows, err := squirrel.QueryContextWith(ctx, qc, dec(squirrel.
 		Select(
-			"product.id",
-			"product.name",
-			"product.serving_type",
-			"product.serving_size",
-			"product.serving_calories",
-		).From("product"),
+			"products.id",
+			"products.name",
+			"products.serving_type",
+			"products.serving_size",
+			"products.serving_calories",
+			"products.created_at",
+		).From("products"),
 	))
 	if err != nil {
 		return nil, err
@@ -156,6 +160,7 @@ func selectProducts(
 			&product.Serving.Type,
 			&product.Serving.Size,
 			&product.Serving.Calories,
+			&product.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
