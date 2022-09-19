@@ -84,7 +84,7 @@ Backend nenaudos ORM įrankių ir komunikuos su duomenu baze tiesiogiai, rašant
 užklausas. Duomenų bazė bus paleista tame pačiame virtualiame serveryje, Docker
 konteineryje.
 
-![File](https://user-images.githubusercontent.com/58231312/190913623-01d242d5-cf43-4f82-9824-6cbe3586b6d3.jpg)
+![File2](https://user-images.githubusercontent.com/58231312/190964890-c02acb5e-27cc-4dcf-af2a-aa9bfcaea533.png)
 
 # API aprašymas
 
