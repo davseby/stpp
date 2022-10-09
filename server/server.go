@@ -92,14 +92,14 @@ func (s *Server) router() chi.Router {
 
 	r.Route("/recipes", func(sr chi.Router) {
 		sr.Get("/", s.GetRecipes)
-		sr.Get("/{recipyID}", s.GetRecipy)
+		sr.Get("/{recipeID}", s.GetRecipe)
 		sr.Get("/user/{userID}", s.GetUserRecipes)
 
 		sr.Group(func(ssr chi.Router) {
 			ssr.Use(s.authorize(false))
-			ssr.Post("/", s.CreateRecipy)
-			ssr.Patch("/{recipyID}", s.UpdateRecipy)
-			ssr.Delete("/{recipyID}", s.DeleteRecipy)
+			ssr.Post("/", s.CreateRecipe)
+			ssr.Patch("/{recipeID}", s.UpdateRecipe)
+			ssr.Delete("/{recipeID}", s.DeleteRecipe)
 		})
 	})
 

@@ -10,8 +10,8 @@ import (
 	"net/http"
 )
 
-// CreateRecipy creates a recipy.
-func (s *Server) CreateRecipy(w http.ResponseWriter, r *http.Request) {
+// CreateRecipe creates a recipe.
+func (s *Server) CreateRecipe(w http.ResponseWriter, r *http.Request) {
 	uid, aerr := s.extractContextUserID(r)
 	if aerr != nil {
 		aerr.Respond(w)
@@ -24,18 +24,18 @@ func (s *Server) CreateRecipy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var rc core.RecipyCore
+	var rc core.RecipeCore
 	if err := json.Unmarshal(data, &rc); err != nil {
 		apierr.MalformedDataInput(apierr.DataTypeJSON).Respond(w)
 		return
 	}
 
-	if aerr := s.validateRecipyCore(r.Context(), rc); aerr != nil {
+	if aerr := s.validateRecipeCore(r.Context(), rc); aerr != nil {
 		aerr.Respond(w)
 		return
 	}
 
-	rec, err := db.InsertRecipy(r.Context(), s.db, uid, rc)
+	rec, err := db.InsertRecipe(r.Context(), s.db, uid, rc)
 	switch err {
 	case nil:
 		// OK.
@@ -46,7 +46,7 @@ func (s *Server) CreateRecipy(w http.ResponseWriter, r *http.Request) {
 		apierr.NotFound("product").Respond(w)
 		return
 	default:
-		s.log.WithError(err).Error("inserting a recipy")
+		s.log.WithError(err).Error("inserting a recipe")
 		apierr.Database().Respond(w)
 		return
 	}
@@ -96,15 +96,15 @@ func (s *Server) GetUserRecipes(w http.ResponseWriter, r *http.Request) {
 	s.respondJSON(w, rr)
 }
 
-// GetRecipy retrieves a single recipy by its id.
-func (s *Server) GetRecipy(w http.ResponseWriter, r *http.Request) {
-	rid, aerr := s.extractPathID(r, "recipyID")
+// GetRecipe retrieves a single recipe by its id.
+func (s *Server) GetRecipe(w http.ResponseWriter, r *http.Request) {
+	rid, aerr := s.extractPathID(r, "recipeID")
 	if aerr != nil {
 		aerr.Respond(w)
 		return
 	}
 
-	rec, err := db.GetRecipyByID(r.Context(), s.db, rid)
+	rec, err := db.GetRecipeByID(r.Context(), s.db, rid)
 	switch err {
 	case nil:
 		// OK.
@@ -112,10 +112,10 @@ func (s *Server) GetRecipy(w http.ResponseWriter, r *http.Request) {
 		apierr.Context().Respond(w)
 		return
 	case db.ErrNotFound:
-		apierr.NotFound("recipy").Respond(w)
+		apierr.NotFound("recipe").Respond(w)
 		return
 	default:
-		s.log.WithError(err).Error("fetching recipy by id")
+		s.log.WithError(err).Error("fetching recipe by id")
 		apierr.Database().Respond(w)
 		return
 	}
@@ -123,10 +123,10 @@ func (s *Server) GetRecipy(w http.ResponseWriter, r *http.Request) {
 	s.respondJSON(w, rec)
 }
 
-// UpdateRecipy updates existing recipy by its id. The recipy can be
+// UpdateRecipe updates existing recipe by its id. The recipe can be
 // updated only by the user which created it.
-func (s *Server) UpdateRecipy(w http.ResponseWriter, r *http.Request) {
-	rid, aerr := s.extractPathID(r, "recipyID")
+func (s *Server) UpdateRecipe(w http.ResponseWriter, r *http.Request) {
+	rid, aerr := s.extractPathID(r, "recipeID")
 	if aerr != nil {
 		aerr.Respond(w)
 		return
@@ -144,7 +144,7 @@ func (s *Server) UpdateRecipy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rec, err := db.GetRecipyByID(r.Context(), s.db, rid)
+	rec, err := db.GetRecipeByID(r.Context(), s.db, rid)
 	switch err {
 	case nil:
 		// OK.
@@ -152,10 +152,10 @@ func (s *Server) UpdateRecipy(w http.ResponseWriter, r *http.Request) {
 		apierr.Context().Respond(w)
 		return
 	case db.ErrNotFound:
-		apierr.NotFound("recipy").Respond(w)
+		apierr.NotFound("recipe").Respond(w)
 		return
 	default:
-		s.log.WithError(err).Error("fetching recipy by id")
+		s.log.WithError(err).Error("fetching recipe by id")
 		apierr.Database().Respond(w)
 		return
 	}
@@ -165,18 +165,18 @@ func (s *Server) UpdateRecipy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var rc core.RecipyCore
+	var rc core.RecipeCore
 	if err := json.Unmarshal(data, &rc); err != nil {
 		apierr.MalformedDataInput(apierr.DataTypeJSON).Respond(w)
 		return
 	}
 
-	if aerr := s.validateRecipyCore(r.Context(), rc); aerr != nil {
+	if aerr := s.validateRecipeCore(r.Context(), rc); aerr != nil {
 		aerr.Respond(w)
 		return
 	}
 
-	rec, err = db.UpdateRecipyByID(r.Context(), s.db, rid, rc)
+	rec, err = db.UpdateRecipeByID(r.Context(), s.db, rid, rc)
 	switch err {
 	case nil:
 		// OK.
@@ -187,7 +187,7 @@ func (s *Server) UpdateRecipy(w http.ResponseWriter, r *http.Request) {
 		apierr.NotFound("product").Respond(w)
 		return
 	default:
-		s.log.WithError(err).Error("creating a new recipy")
+		s.log.WithError(err).Error("creating a new recipe")
 		apierr.Database().Respond(w)
 		return
 	}
@@ -195,10 +195,10 @@ func (s *Server) UpdateRecipy(w http.ResponseWriter, r *http.Request) {
 	s.respondJSON(w, rec)
 }
 
-// DeleteRecipy deletes existing recipy by its id. The recipy can be deleted
+// DeleteRecipe deletes existing recipe by its id. The recipe can be deleted
 // only by an admin or the user that created it.
-func (s *Server) DeleteRecipy(w http.ResponseWriter, r *http.Request) {
-	rid, aerr := s.extractPathID(r, "recipyID")
+func (s *Server) DeleteRecipe(w http.ResponseWriter, r *http.Request) {
+	rid, aerr := s.extractPathID(r, "recipeID")
 	if aerr != nil {
 		aerr.Respond(w)
 		return
@@ -217,7 +217,7 @@ func (s *Server) DeleteRecipy(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		rec, err := db.GetRecipyByID(r.Context(), s.db, rid)
+		rec, err := db.GetRecipeByID(r.Context(), s.db, rid)
 		switch err {
 		case nil:
 			// OK.
@@ -225,10 +225,10 @@ func (s *Server) DeleteRecipy(w http.ResponseWriter, r *http.Request) {
 			apierr.Context().Respond(w)
 			return
 		case db.ErrNotFound:
-			apierr.NotFound("recipy").Respond(w)
+			apierr.NotFound("recipe").Respond(w)
 			return
 		default:
-			s.log.WithError(err).Error("fetching recipy by id")
+			s.log.WithError(err).Error("fetching recipe by id")
 			apierr.Database().Respond(w)
 			return
 		}
@@ -239,7 +239,7 @@ func (s *Server) DeleteRecipy(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	plans, err := db.GetPlanRecipesByRecipyID(r.Context(), s.db, rid)
+	plans, err := db.GetPlanRecipesByRecipeID(r.Context(), s.db, rid)
 	switch err {
 	case nil:
 		// OK.
@@ -247,17 +247,17 @@ func (s *Server) DeleteRecipy(w http.ResponseWriter, r *http.Request) {
 		apierr.Context().Respond(w)
 		return
 	default:
-		s.log.WithError(err).Error("getting plan recipes by recipy id")
+		s.log.WithError(err).Error("getting plan recipes by recipe id")
 		apierr.Database().Respond(w)
 		return
 	}
 
 	if len(plans) > 0 {
-		apierr.Conflict("recipy in use").Respond(w)
+		apierr.Conflict("recipe in use").Respond(w)
 		return
 	}
 
-	err = db.DeleteRecipyByID(r.Context(), s.db, rid)
+	err = db.DeleteRecipeByID(r.Context(), s.db, rid)
 	switch err {
 	case nil:
 		// OK.
@@ -265,7 +265,7 @@ func (s *Server) DeleteRecipy(w http.ResponseWriter, r *http.Request) {
 		apierr.Context().Respond(w)
 		return
 	default:
-		s.log.WithError(err).Error("deleting recipy by id")
+		s.log.WithError(err).Error("deleting recipe by id")
 		apierr.Database().Respond(w)
 		return
 	}
@@ -273,8 +273,8 @@ func (s *Server) DeleteRecipy(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// validateRecipyCore validates recipy core attributes.
-func (s *Server) validateRecipyCore(ctx context.Context, rc core.RecipyCore) *apierr.Error {
+// validateRecipeCore validates recipe core attributes.
+func (s *Server) validateRecipeCore(ctx context.Context, rc core.RecipeCore) *apierr.Error {
 	pp, err := db.GetProducts(ctx, s.db)
 	switch err {
 	case nil:

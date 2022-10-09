@@ -49,7 +49,7 @@ func InsertPlan(
 	for _, pr := range pc.Recipes {
 		pr.PlanID = pl.ID
 
-		if err := upsertPlanRecipy(
+		if err := upsertPlanRecipe(
 			ctx,
 			tx,
 			pr,
@@ -151,7 +151,7 @@ func UpdatePlanByID(
 	for _, pr := range pc.Recipes {
 		pr.PlanID = id
 
-		if err := upsertPlanRecipy(
+		if err := upsertPlanRecipe(
 			ctx,
 			tx,
 			pr,
@@ -246,19 +246,19 @@ func selectPlans(
 	return pp, nil
 }
 
-// GetPlanRecipesByRecipyID selects plan recipes by the recipy id.
-func GetPlanRecipesByRecipyID(
+// GetPlanRecipesByRecipeID selects plan recipes by the recipe id.
+func GetPlanRecipesByRecipeID(
 	ctx context.Context,
 	qc squirrel.QueryerContext,
 	id xid.ID,
-) ([]core.PlanRecipy, error) {
+) ([]core.PlanRecipe, error) {
 
 	return selectPlanRecipes(
 		ctx,
 		qc,
 		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
 			return sb.Where(
-				squirrel.Eq{"plan_recipes.recipy_id": id},
+				squirrel.Eq{"plan_recipes.recipe_id": id},
 			)
 		},
 	)
@@ -269,7 +269,7 @@ func getPlanRecipesByPlanID(
 	ctx context.Context,
 	qc squirrel.QueryerContext,
 	id xid.ID,
-) ([]core.PlanRecipy, error) {
+) ([]core.PlanRecipe, error) {
 
 	return selectPlanRecipes(
 		ctx,
@@ -299,11 +299,11 @@ func deletePlanRecipes(
 	return err
 }
 
-// upsertPlanRecipy upserts plan recipy.
-func upsertPlanRecipy(
+// upsertPlanRecipe upserts plan recipe.
+func upsertPlanRecipe(
 	ctx context.Context,
 	ec squirrel.ExecerContext,
-	pr core.PlanRecipy,
+	pr core.PlanRecipe,
 ) error {
 
 	_, err := squirrel.ExecContextWith(
@@ -311,7 +311,7 @@ func upsertPlanRecipy(
 		ec,
 		squirrel.Insert("plan_recipes").SetMap(map[string]interface{}{
 			"plan_recipes.plan_id":   pr.PlanID,
-			"plan_recipes.recipy_id": pr.RecipyID,
+			"plan_recipes.recipe_id": pr.RecipeID,
 			"plan_recipes.quantity":  pr.Quantity,
 		}).Suffix("ON DUPLICATE KEY UPDATE plan_recipes.quantity = VALUES(plan_recipes.quantity)"),
 	)
@@ -324,12 +324,12 @@ func selectPlanRecipes(
 	ctx context.Context,
 	qc squirrel.QueryerContext,
 	dec func(squirrel.SelectBuilder) squirrel.SelectBuilder,
-) ([]core.PlanRecipy, error) {
+) ([]core.PlanRecipe, error) {
 
 	rows, err := squirrel.QueryContextWith(ctx, qc, dec(squirrel.
 		Select(
 			"plan_recipes.plan_id",
-			"plan_recipes.recipy_id",
+			"plan_recipes.recipe_id",
 			"plan_recipes.quantity",
 		).From("plan_recipes"),
 	))
@@ -338,12 +338,12 @@ func selectPlanRecipes(
 	}
 	defer rows.Close()
 
-	prs := make([]core.PlanRecipy, 0)
+	prs := make([]core.PlanRecipe, 0)
 	for rows.Next() {
-		var pr core.PlanRecipy
+		var pr core.PlanRecipe
 		if err := rows.Scan(
 			&pr.PlanID,
-			&pr.RecipyID,
+			&pr.RecipeID,
 			&pr.Quantity,
 		); err != nil {
 			return nil, err

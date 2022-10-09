@@ -9,15 +9,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_RecipyCore_Validate(t *testing.T) {
+func Test_RecipeCore_Validate(t *testing.T) {
 	tests := map[string]struct {
-		RecipyCore RecipyCore
+		RecipeCore RecipeCore
 		Error      *apierr.Error
 	}{
 		"Invalid name": {
-			RecipyCore: RecipyCore{
+			RecipeCore: RecipeCore{
 				Description: "123",
-				Products: []RecipyProduct{
+				Products: []RecipeProduct{
 					{
 						Quantity: decimal.NewFromInt(3),
 					},
@@ -29,9 +29,9 @@ func Test_RecipyCore_Validate(t *testing.T) {
 			Error: apierr.InvalidAttribute("name", "cannot be empty"),
 		},
 		"Invalid description": {
-			RecipyCore: RecipyCore{
+			RecipeCore: RecipeCore{
 				Name: "333",
-				Products: []RecipyProduct{
+				Products: []RecipeProduct{
 					{
 						Quantity: decimal.NewFromInt(3),
 					},
@@ -43,17 +43,17 @@ func Test_RecipyCore_Validate(t *testing.T) {
 			Error: apierr.InvalidAttribute("description", "cannot be empty"),
 		},
 		"Invalid products length": {
-			RecipyCore: RecipyCore{
+			RecipeCore: RecipeCore{
 				Name:        "333",
 				Description: "123",
 			},
 			Error: apierr.InvalidAttribute("products", "must contains at least two elements"),
 		},
 		"Invalid products quantity": {
-			RecipyCore: RecipyCore{
+			RecipeCore: RecipeCore{
 				Name:        "333",
 				Description: "123",
-				Products: []RecipyProduct{
+				Products: []RecipeProduct{
 					{
 						Quantity: decimal.NewFromInt(3),
 					},
@@ -64,11 +64,11 @@ func Test_RecipyCore_Validate(t *testing.T) {
 			},
 			Error: apierr.InvalidAttribute("products[1].quantity", "must be positive"),
 		},
-		"Valid recipy core": {
-			RecipyCore: RecipyCore{
+		"Valid recipe core": {
+			RecipeCore: RecipeCore{
 				Name:        "123",
 				Description: "123",
-				Products: []RecipyProduct{
+				Products: []RecipeProduct{
 					{
 						Quantity: decimal.NewFromInt(3),
 					},
@@ -86,14 +86,14 @@ func Test_RecipyCore_Validate(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			assert.Equal(t, test.Error, test.RecipyCore.Validate())
+			assert.Equal(t, test.Error, test.RecipeCore.Validate())
 		})
 	}
 }
 
-func Test_RecipyProduct_FindMatching(t *testing.T) {
+func Test_RecipeProduct_FindMatching(t *testing.T) {
 	id := xid.New()
-	rp := &RecipyProduct{
+	rp := &RecipeProduct{
 		ProductID: id,
 	}
 

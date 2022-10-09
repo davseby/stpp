@@ -55,16 +55,16 @@ INSERT INTO `recipes` (`id`, `user_id`, `name`, `description`, `created_at`) VAL
 ("cciuomn6i1e14du2lbe0", "cciuk0n6i1e0q9d6pnf0", "Cocumber spread sandwitches", "Healthy, high protein snack.", "2022-09-18 23:29:00"),
 ("ccjlpaf6i1e7tbfsih3g", NULL, "Baked Apples", "Healthy desert.", "2022-09-18 23:59:59");
 
-CREATE TABLE `recipy_products` (
-	`recipy_id` VARCHAR(20) NOT NULL,
+CREATE TABLE `recipe_products` (
+	`recipe_id` VARCHAR(20) NOT NULL,
 	`product_id` VARCHAR(20) NOT NULL,
 	`quantity` DECIMAL(18, 4) NOT NULL,
-	PRIMARY KEY (`recipy_id`, `product_id`),
-	CONSTRAINT `recipy_products_recipy_fk` FOREIGN KEY (`recipy_id`) REFERENCES `recipes` (`id`) ON DELETE CASCADE,
-	CONSTRAINT `recipy_products_product_fk` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`)
+	PRIMARY KEY (`recipe_id`, `product_id`),
+	CONSTRAINT `recipe_products_recipe_fk` FOREIGN KEY (`recipe_id`) REFERENCES `recipes` (`id`) ON DELETE CASCADE,
+	CONSTRAINT `recipe_products_product_fk` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-INSERT INTO `recipy_products` (`recipy_id`, `product_id`, `quantity`) VALUES 
+INSERT INTO `recipe_products` (`recipe_id`, `product_id`, `quantity`) VALUES 
 ("cciuk9v6i1e0rha6m580", "cciudtv6i1e0cuscb5jg", "0.33"),
 ("cciuk9v6i1e0rha6m580", "cciueof6i1e0du7sgp6g", "0.5"),
 ("cciuk9v6i1e0rha6m580", "cciuf5f6i1e0e49j5750", "2.8"),
@@ -94,14 +94,14 @@ INSERT INTO `plans` (`id`, `user_id`, `name`, `description`, `created_at`) VALUE
 
 CREATE TABLE `plan_recipes` (
 	`plan_id` VARCHAR(20) NOT NULL,
-	`recipy_id` VARCHAR(20) NOT NULL,
+	`recipe_id` VARCHAR(20) NOT NULL,
 	`quantity` INTEGER UNSIGNED NOT NULL,
-	PRIMARY KEY (`plan_id`, `recipy_id`),
+	PRIMARY KEY (`plan_id`, `recipe_id`),
 	CONSTRAINT `plan_recipes_plan_id_fk` FOREIGN KEY (`plan_id`) REFERENCES `plans` (`id`) ON DELETE CASCADE,
-	CONSTRAINT `plan_recipes_recipy_id_fk` FOREIGN KEY (`recipy_id`) REFERENCES `recipes` (`id`)
+	CONSTRAINT `plan_recipes_recipe_id_fk` FOREIGN KEY (`recipe_id`) REFERENCES `recipes` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-INSERT INTO `plan_recipes` (`plan_id`, `recipy_id`, `quantity`) VALUES 
+INSERT INTO `plan_recipes` (`plan_id`, `recipe_id`, `quantity`) VALUES 
 ("cciupgf6i1e15grnp640", "cciuk9v6i1e0rha6m580", "1"),
 ("cciupgf6i1e15grnp640", "cciuomn6i1e14du2lbe0", "3"),
 ("ccjlq5f6i1e82gbco1jg", "cciuomn6i1e14du2lbe0", "4"),

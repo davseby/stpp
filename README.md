@@ -314,7 +314,7 @@ Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOnRydWUsImF1
 	]
 	```
 
-- `GET` `/recipes/{recipyID}` - Recepto pasiimimas.
+- `GET` `/recipes/{recipeID}` - Recepto pasiimimas.
 	- Reikia prisijungti: Ne
 	- Reikalingos administratoriaus teisės: Ne
 	- Užklausos informacija: Nėra
@@ -416,7 +416,7 @@ Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOnRydWUsImF1
 	}
 	```
 
-- `PATCH` `/recipes/{recipyID}` - Recepto atnaujinimas.
+- `PATCH` `/recipes/{recipeID}` - Recepto atnaujinimas.
 	- Reikia prisijungti: Taip
 	- Reikalingos administratoriaus teisės: Ne
 	- Užklausos informacija:
@@ -449,7 +449,7 @@ Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOnRydWUsImF1
 	}
 	```
 
-- `DELETE` `/recipes/{recipyID}` - Recepto ištrinimas.
+- `DELETE` `/recipes/{recipeID}` - Recepto ištrinimas.
 	- Reikia prisijungti: Taip
 	- Reikalingos administratoriaus teisės: Ne
 	- Užklausos informacija: Nėra
@@ -471,11 +471,11 @@ Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOnRydWUsImF1
 			"description": "description",
 			"recipes": [
 				{
-					"recipy_id": "cceqj5n6i1e7hgou9lv0",
+					"recipe_id": "cceqj5n6i1e7hgou9lv0",
 					"quantity": 2
 				},
 				{
-					"recipy_id": "cceqj5n6i1e7hgou9lv9",
+					"recipe_id": "cceqj5n6i1e7hgou9lv9",
 					"quantity": 1
 				}
 			],
@@ -488,15 +488,15 @@ Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOnRydWUsImF1
 			"description": "description",
 			"recipes": [
 				{
-					"recipy_id": "cceqj5n6i1e7hgou9lv5",
+					"recipe_id": "cceqj5n6i1e7hgou9lv5",
 					"quantity": 2
 				},
 				{
-					"recipy_id": "cceqj5n6i1e7hgou9lv6",
+					"recipe_id": "cceqj5n6i1e7hgou9lv6",
 					"quantity": 1
 				},
 				{
-					"recipy_id": "cceqj5n6i1e7hgou9lv0",
+					"recipe_id": "cceqj5n6i1e7hgou9lv0",
 					"quantity": 5
 				}
 			],
@@ -518,11 +518,11 @@ Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOnRydWUsImF1
 		"description": "description",
 		"recipes": [
 			{
-				"recipy_id": "cceqj5n6i1e7hgou9lv0",
+				"recipe_id": "cceqj5n6i1e7hgou9lv0",
 				"quantity": 2
 			},
 			{
-				"recipy_id": "cceqj5n6i1e7hgou9lv9",
+				"recipe_id": "cceqj5n6i1e7hgou9lv9",
 				"quantity": 1
 			}
 		],
@@ -544,11 +544,11 @@ Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOnRydWUsImF1
 			"description": "description",
 			"recipes": [
 				{
-					"recipy_id": "cceqj5n6i1e7hgou9lv0",
+					"recipe_id": "cceqj5n6i1e7hgou9lv0",
 					"quantity": 2
 				},
 				{
-					"recipy_id": "cceqj5n6i1e7hgou9lv9",
+					"recipe_id": "cceqj5n6i1e7hgou9lv9",
 					"quantity": 1
 				}
 			],
@@ -561,15 +561,15 @@ Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOnRydWUsImF1
 			"description": "description",
 			"recipes": [
 				{
-					"recipy_id": "cceqj5n6i1e7hgou9lv5",
+					"recipe_id": "cceqj5n6i1e7hgou9lv5",
 					"quantity": 2
 				},
 				{
-					"recipy_id": "cceqj5n6i1e7hgou9lv6",
+					"recipe_id": "cceqj5n6i1e7hgou9lv6",
 					"quantity": 1
 				},
 				{
-					"recipy_id": "cceqj5n6i1e7hgou9lv0",
+					"recipe_id": "cceqj5n6i1e7hgou9lv0",
 					"quantity": 5
 				}
 			],
@@ -588,7 +588,7 @@ Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOnRydWUsImF1
 		"description": "description",
 		"recipes": [
 			{
-				"recipy_id": "cceqj5n6i1e7hgou9lv0",
+				"recipe_id": "cceqj5n6i1e7hgou9lv0",
 				"quantity": 2
 			}
 		]
@@ -603,7 +603,7 @@ Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOnRydWUsImF1
 		"description": "description",
 		"recipes": [
 			{
-				"recipy_id": "cceqj5n6i1e7hgou9lv0",
+				"recipe_id": "cceqj5n6i1e7hgou9lv0",
 				"quantity": 2
 			}
 		],
@@ -621,7 +621,7 @@ Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOnRydWUsImF1
 		"description": "description",
 		"recipes": [
 			{
-				"recipy_id": "cceqj5n6i1e7hgou9lv0",
+				"recipe_id": "cceqj5n6i1e7hgou9lv0",
 				"quantity": 2
 			}
 		]
@@ -636,7 +636,7 @@ Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG0iOnRydWUsImF1
 		"description": "description",
 		"recipes": [
 			{
-				"recipy_id": "cceqj5n6i1e7hgou9lv0",
+				"recipe_id": "cceqj5n6i1e7hgou9lv0",
 				"quantity": 2
 			}
 		],

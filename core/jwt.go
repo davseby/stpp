@@ -19,7 +19,7 @@ const (
 	jwtExpiresAfter = time.Hour * 24
 )
 
-// IssueJWT issues a jwt token with the specified parameters. Returns a
+// IssueJWT issues a jwt with the specified parameters. Returns a
 // serialized token and a serialization error, if any.
 func IssueJWT(secret []byte, id xid.ID, admin bool, tstamp time.Time) ([]byte, error) {
 	token := jws.NewJWT(jws.Claims{}, crypto.SigningMethodHS256)
@@ -43,7 +43,7 @@ func IssueJWT(secret []byte, id xid.ID, admin bool, tstamp time.Time) ([]byte, e
 	return data, nil
 }
 
-// ParseJWT parses a jwt token and validates the data.
+// ParseJWT parses a jwt and validates the data.
 func ParseJWT(secret, data []byte, tstamp time.Time) (xid.ID, bool, *apierr.Error) {
 	token, err := jws.ParseJWT(data)
 	if err != nil {

@@ -9,34 +9,34 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// Recipy contains recipy data.
-type Recipy struct {
-	RecipyCore
+// Recipe contains recipe data.
+type Recipe struct {
+	RecipeCore
 
-	// ID is a unique recipy identifier.
+	// ID is a unique recipe identifier.
 	ID xid.ID `json:"id"`
 
-	// UserID specifies the user which created the recipy.
+	// UserID specifies the user which created the recipe.
 	UserID xid.ID `json:"user_id"`
 
 	// CreatedAt specifies a time at which the object was created.
 	CreatedAt time.Time `json:"created_at"`
 }
 
-// RecipyCore contains core recipy information.
-type RecipyCore struct {
-	// Name specifies the name of the recipy.
+// RecipeCore contains core recipe information.
+type RecipeCore struct {
+	// Name specifies the name of the recipe.
 	Name string `json:"name"`
 
-	// Description provides a brief description of the recipy.
+	// Description provides a brief description of the recipe.
 	Description string `json:"description"`
 
-	// Products contains recipy products.
-	Products []RecipyProduct `json:"products"`
+	// Products contains recipe products.
+	Products []RecipeProduct `json:"products"`
 }
 
-// Validate checks whether recipy core contains valid attributes.
-func (rc *RecipyCore) Validate() *apierr.Error {
+// Validate checks whether recipe core contains valid attributes.
+func (rc *RecipeCore) Validate() *apierr.Error {
 	if rc.Name == "" {
 		return apierr.InvalidAttribute("name", "cannot be empty")
 	}
@@ -58,22 +58,22 @@ func (rc *RecipyCore) Validate() *apierr.Error {
 	return nil
 }
 
-// RecipyProduct maps recipy product with the actual product stored in the
+// RecipeProduct maps recipe product with the actual product stored in the
 // system.
-type RecipyProduct struct {
-	// RecipyID specifies the recipy id of the recipy that it belongs to.
-	RecipyID xid.ID `json:"-"`
+type RecipeProduct struct {
+	// RecipeID specifies the recipe id of the recipe that it belongs to.
+	RecipeID xid.ID `json:"-"`
 
 	// ProductID specifies the product id of the product.
 	ProductID xid.ID `json:"product_id"`
 
 	// Quantity specifies how much of a product should be used in the
-	// recipy.
+	// recipe.
 	Quantity decimal.Decimal `json:"quantity"`
 }
 
 // FindMatching finds the matching product based on the id.
-func (rp *RecipyProduct) FindMatching(products []Product) (Product, bool) {
+func (rp *RecipeProduct) FindMatching(products []Product) (Product, bool) {
 	for _, product := range products {
 		if product.ID == rp.ProductID {
 			return product, true

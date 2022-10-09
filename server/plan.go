@@ -43,7 +43,7 @@ func (s *Server) CreatePlan(w http.ResponseWriter, r *http.Request) {
 		apierr.Context().Respond(w)
 		return
 	case db.ErrNotFound:
-		apierr.NotFound("recipy").Respond(w)
+		apierr.NotFound("recipe").Respond(w)
 		return
 	default:
 		s.log.WithError(err).Error("inserting a plan")
@@ -184,7 +184,7 @@ func (s *Server) UpdatePlan(w http.ResponseWriter, r *http.Request) {
 		apierr.Context().Respond(w)
 		return
 	case db.ErrNotFound:
-		apierr.NotFound("recipy").Respond(w)
+		apierr.NotFound("recipe").Respond(w)
 		return
 	default:
 		s.log.WithError(err).Error("creating a new plan")
@@ -270,7 +270,7 @@ func (s *Server) validatePlanCore(ctx context.Context, pc core.PlanCore) *apierr
 
 	for _, pr := range pc.Recipes {
 		if _, ok := pr.FindMatching(rr); !ok {
-			return apierr.NotFound("recipy")
+			return apierr.NotFound("recipe")
 		}
 	}
 

@@ -79,7 +79,7 @@ func GetProductByID(
 	return &products[0], nil
 }
 
-// UpdateProductByID updates an existing recipy by its id. An updated product
+// UpdateProductByID updates an existing recipe by its id. An updated product
 // is returned.
 func UpdateProductByID(
 	ctx context.Context,

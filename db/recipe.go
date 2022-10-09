@@ -10,13 +10,13 @@ import (
 	"github.com/rs/xid"
 )
 
-// InsertRecipy inserts a new recipy into the database.
-func InsertRecipy(
+// InsertRecipe inserts a new recipe into the database.
+func InsertRecipe(
 	ctx context.Context,
 	db *sql.DB,
 	uid xid.ID,
-	rc core.RecipyCore,
-) (*core.Recipy, error) {
+	rc core.RecipeCore,
+) (*core.Recipe, error) {
 
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
@@ -24,11 +24,11 @@ func InsertRecipy(
 	}
 	defer tx.Rollback()
 
-	rec := core.Recipy{
+	rec := core.Recipe{
 		ID:         xid.New(),
 		UserID:     uid,
 		CreatedAt:  time.Now(),
-		RecipyCore: rc,
+		RecipeCore: rc,
 	}
 
 	_, err = squirrel.ExecContextWith(
@@ -47,9 +47,9 @@ func InsertRecipy(
 	}
 
 	for _, rp := range rc.Products {
-		rp.RecipyID = rec.ID
+		rp.RecipeID = rec.ID
 
-		if err := upsertRecipyProduct(
+		if err := upsertRecipeProduct(
 			ctx,
 			tx,
 			rp,
@@ -69,7 +69,7 @@ func InsertRecipy(
 func GetRecipes(
 	ctx context.Context,
 	qc squirrel.QueryerContext,
-) ([]core.Recipy, error) {
+) ([]core.Recipe, error) {
 
 	return selectRecipes(
 		ctx,
@@ -85,7 +85,7 @@ func GetRecipesByUserID(
 	ctx context.Context,
 	qc squirrel.QueryerContext,
 	uid xid.ID,
-) ([]core.Recipy, error) {
+) ([]core.Recipe, error) {
 
 	return selectRecipes(
 		ctx,
@@ -98,12 +98,12 @@ func GetRecipesByUserID(
 	)
 }
 
-// GetRecipyByID retrieves a recipy by its id.
-func GetRecipyByID(
+// GetRecipeByID retrieves a recipe by its id.
+func GetRecipeByID(
 	ctx context.Context,
 	qc squirrel.QueryerContext,
 	id xid.ID,
-) (*core.Recipy, error) {
+) (*core.Recipe, error) {
 
 	rr, err := selectRecipes(
 		ctx,
@@ -125,14 +125,14 @@ func GetRecipyByID(
 	return &rr[0], nil
 }
 
-// UpdateRecipyByID updates an existing recipy by its id. An updated recipy
+// UpdateRecipeByID updates an existing recipe by its id. An updated recipe
 // is returned.
-func UpdateRecipyByID(
+func UpdateRecipeByID(
 	ctx context.Context,
 	db *sql.DB,
 	id xid.ID,
-	rc core.RecipyCore,
-) (*core.Recipy, error) {
+	rc core.RecipeCore,
+) (*core.Recipe, error) {
 
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
@@ -140,7 +140,7 @@ func UpdateRecipyByID(
 	}
 	defer tx.Rollback()
 
-	if err := deleteRecipyProducts(
+	if err := deleteRecipeProducts(
 		ctx,
 		tx,
 		id,
@@ -149,9 +149,9 @@ func UpdateRecipyByID(
 	}
 
 	for _, rp := range rc.Products {
-		rp.RecipyID = id
+		rp.RecipeID = id
 
-		if err := upsertRecipyProduct(
+		if err := upsertRecipeProduct(
 			ctx,
 			tx,
 			rp,
@@ -175,7 +175,7 @@ func UpdateRecipyByID(
 		return nil, err
 	}
 
-	rec, err := GetRecipyByID(ctx, db, id)
+	rec, err := GetRecipeByID(ctx, db, id)
 	if err != nil {
 		return nil, err
 	}
@@ -183,8 +183,8 @@ func UpdateRecipyByID(
 	return rec, nil
 }
 
-// DeleteRecipyByID deletes a recipy by its id.
-func DeleteRecipyByID(
+// DeleteRecipeByID deletes a recipe by its id.
+func DeleteRecipeByID(
 	ctx context.Context,
 	ec squirrel.ExecerContext,
 	id xid.ID,
@@ -205,7 +205,7 @@ func selectRecipes(
 	ctx context.Context,
 	qc squirrel.QueryerContext,
 	dec func(squirrel.SelectBuilder) squirrel.SelectBuilder,
-) ([]core.Recipy, error) {
+) ([]core.Recipe, error) {
 
 	rows, err := squirrel.QueryContextWith(ctx, qc, dec(squirrel.
 		Select(
@@ -221,9 +221,9 @@ func selectRecipes(
 	}
 	defer rows.Close()
 
-	rr := make([]core.Recipy, 0)
+	rr := make([]core.Recipe, 0)
 	for rows.Next() {
-		var rec core.Recipy
+		var rec core.Recipe
 		if err := rows.Scan(
 			&rec.ID,
 			&rec.UserID,
@@ -234,7 +234,7 @@ func selectRecipes(
 			return nil, err
 		}
 
-		rps, err := getRecipyProductsByRecipyID(ctx, qc, rec.ID)
+		rps, err := getRecipeProductsByRecipeID(ctx, qc, rec.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -246,44 +246,44 @@ func selectRecipes(
 	return rr, nil
 }
 
-// GetRecipyProductsByPorudctID selects recipy products by the product id.
-func GetRecipyProductsByProductID(
+// GetRecipeProductsByPorudctID selects recipe products by the product id.
+func GetRecipeProductsByProductID(
 	ctx context.Context,
 	qc squirrel.QueryerContext,
 	id xid.ID,
-) ([]core.RecipyProduct, error) {
+) ([]core.RecipeProduct, error) {
 
-	return selectRecipyProducts(
+	return selectRecipeProducts(
 		ctx,
 		qc,
 		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
 			return sb.Where(
-				squirrel.Eq{"recipy_products.product_id": id},
+				squirrel.Eq{"recipe_products.product_id": id},
 			)
 		},
 	)
 }
 
-// getRecipyProductsByRecipyID selects recipy products by the recipy id.
-func getRecipyProductsByRecipyID(
+// getRecipeProductsByRecipeID selects recipe products by the recipe id.
+func getRecipeProductsByRecipeID(
 	ctx context.Context,
 	qc squirrel.QueryerContext,
 	id xid.ID,
-) ([]core.RecipyProduct, error) {
+) ([]core.RecipeProduct, error) {
 
-	return selectRecipyProducts(
+	return selectRecipeProducts(
 		ctx,
 		qc,
 		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
 			return sb.Where(
-				squirrel.Eq{"recipy_products.recipy_id": id},
+				squirrel.Eq{"recipe_products.recipe_id": id},
 			)
 		},
 	)
 }
 
-// deleteRecipyProducts deletes all recipy products.
-func deleteRecipyProducts(
+// deleteRecipeProducts deletes all recipe products.
+func deleteRecipeProducts(
 	ctx context.Context,
 	ec squirrel.ExecerContext,
 	rid xid.ID,
@@ -292,57 +292,57 @@ func deleteRecipyProducts(
 	_, err := squirrel.ExecContextWith(
 		ctx,
 		ec,
-		squirrel.Delete("recipy_products").Where(
-			squirrel.Eq{"recipy_products.recipy_id": rid},
+		squirrel.Delete("recipe_products").Where(
+			squirrel.Eq{"recipe_products.recipe_id": rid},
 		),
 	)
 	return err
 }
 
-// upsertRecipyProduct upserts recipy products.
-func upsertRecipyProduct(
+// upsertRecipeProduct upserts recipe products.
+func upsertRecipeProduct(
 	ctx context.Context,
 	ec squirrel.ExecerContext,
-	rp core.RecipyProduct,
+	rp core.RecipeProduct,
 ) error {
 
 	_, err := squirrel.ExecContextWith(
 		ctx,
 		ec,
-		squirrel.Insert("recipy_products").SetMap(map[string]interface{}{
-			"recipy_products.recipy_id":  rp.RecipyID,
-			"recipy_products.product_id": rp.ProductID,
-			"recipy_products.quantity":   rp.Quantity,
-		}).Suffix("ON DUPLICATE KEY UPDATE recipy_products.quantity = VALUES(recipy_products.quantity)"),
+		squirrel.Insert("recipe_products").SetMap(map[string]interface{}{
+			"recipe_products.recipe_id":  rp.RecipeID,
+			"recipe_products.product_id": rp.ProductID,
+			"recipe_products.quantity":   rp.Quantity,
+		}).Suffix("ON DUPLICATE KEY UPDATE recipe_products.quantity = VALUES(recipe_products.quantity)"),
 	)
 	return err
 }
 
-// selectRecipyProducts selects all recipy products by the provided decorator
+// selectRecipeProducts selects all recipe products by the provided decorator
 // function.
-func selectRecipyProducts(
+func selectRecipeProducts(
 	ctx context.Context,
 	qc squirrel.QueryerContext,
 	dec func(squirrel.SelectBuilder) squirrel.SelectBuilder,
-) ([]core.RecipyProduct, error) {
+) ([]core.RecipeProduct, error) {
 
 	rows, err := squirrel.QueryContextWith(ctx, qc, dec(squirrel.
 		Select(
-			"recipy_products.recipy_id",
-			"recipy_products.product_id",
-			"recipy_products.quantity",
-		).From("recipy_products"),
+			"recipe_products.recipe_id",
+			"recipe_products.product_id",
+			"recipe_products.quantity",
+		).From("recipe_products"),
 	))
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	rps := make([]core.RecipyProduct, 0)
+	rps := make([]core.RecipeProduct, 0)
 	for rows.Next() {
-		var rp core.RecipyProduct
+		var rp core.RecipeProduct
 		if err := rows.Scan(
-			&rp.RecipyID,
+			&rp.RecipeID,
 			&rp.ProductID,
 			&rp.Quantity,
 		); err != nil {
