@@ -45,7 +45,7 @@ func (pc *PlanCore) Validate() *apierr.Error {
 	}
 
 	if len(pc.Recipes) < 1 {
-		return apierr.InvalidAttribute("recipes", "must contains at least one element")
+		return apierr.InvalidAttribute("recipes", "must contain at least one element")
 	}
 
 	for i, rec := range pc.Recipes {

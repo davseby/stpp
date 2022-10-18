@@ -133,6 +133,22 @@ func (s *Server) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_, err := db.GetProductByID(r.Context(), s.db, pid)
+	switch err {
+	case nil:
+		// OK.
+	case db.ErrNotFound:
+		apierr.NotFound("product").Respond(w)
+		return
+	case r.Context().Err():
+		apierr.Context().Respond(w)
+		return
+	default:
+		s.log.WithError(err).Error("getting products by product id")
+		apierr.Database().Respond(w)
+		return
+	}
+
 	recipes, err := db.GetRecipeProductsByProductID(r.Context(), s.db, pid)
 	switch err {
 	case nil:
