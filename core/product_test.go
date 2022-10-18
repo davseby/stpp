@@ -18,7 +18,7 @@ func Test_ProductCore_Validate(t *testing.T) {
 				Serving: Serving{
 					Type:     ServingTypeMilliliters,
 					Size:     decimal.NewFromInt(10),
-					Calories: decimal.NewFromInt(50),
+					Calories: 50,
 				},
 			},
 			Error: apierr.InvalidAttribute("name", "cannot be empty"),
@@ -28,7 +28,7 @@ func Test_ProductCore_Validate(t *testing.T) {
 				Name: "123",
 				Serving: Serving{
 					Size:     decimal.NewFromInt(10),
-					Calories: decimal.NewFromInt(50),
+					Calories: 50,
 				},
 			},
 			Error: apierr.InvalidAttribute("type", "must be of a valid type"),
@@ -38,7 +38,7 @@ func Test_ProductCore_Validate(t *testing.T) {
 				Name: "123",
 				Serving: Serving{
 					Type:     ServingTypeMilliliters,
-					Calories: decimal.NewFromInt(50),
+					Calories: 50,
 				},
 			},
 			Error: apierr.InvalidAttribute("size", "cannot be less or equal to 0"),
@@ -49,10 +49,10 @@ func Test_ProductCore_Validate(t *testing.T) {
 				Serving: Serving{
 					Type:     ServingTypeMilliliters,
 					Size:     decimal.NewFromInt(10),
-					Calories: decimal.NewFromInt(-50),
+					Calories: -50,
 				},
 			},
-			Error: apierr.InvalidAttribute("name", "cannot be less than 0"),
+			Error: apierr.InvalidAttribute("calories", "cannot be less than 0"),
 		},
 		"Valid product core": {
 			ProductCore: ProductCore{
@@ -60,7 +60,7 @@ func Test_ProductCore_Validate(t *testing.T) {
 				Serving: Serving{
 					Type:     ServingTypeMilliliters,
 					Size:     decimal.NewFromInt(10),
-					Calories: decimal.NewFromInt(50),
+					Calories: 50,
 				},
 			},
 		},

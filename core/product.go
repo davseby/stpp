@@ -51,7 +51,7 @@ type Serving struct {
 	Size decimal.Decimal `json:"size"`
 
 	// Calories specifies how many calories are in the single serving.
-	Calories decimal.Decimal `json:"calories"`
+	Calories int `json:"calories"`
 }
 
 // Validate checks whether product core contains valid attributes.
@@ -70,8 +70,8 @@ func (pc *ProductCore) Validate() *apierr.Error {
 		return apierr.InvalidAttribute("size", "cannot be less or equal to 0")
 	}
 
-	if pc.Serving.Calories.IsNegative() {
-		return apierr.InvalidAttribute("name", "cannot be less than 0")
+	if pc.Serving.Calories < 0 {
+		return apierr.InvalidAttribute("calories", "cannot be less than 0")
 	}
 
 	return nil

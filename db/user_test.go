@@ -166,7 +166,7 @@ func Test_GetUserByID(t *testing.T) {
 		require.Equal(t, ErrNotFound, err)
 	})
 
-	t.Run("successfully retrieved a user by name", func(t *testing.T) {
+	t.Run("successfully retrieved a user by id", func(t *testing.T) {
 		res, err := GetUserByID(context.Background(), dbh, uu[1].ID)
 		require.NoError(t, err)
 		assert.Equal(t, &uu[1], res)
