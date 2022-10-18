@@ -81,9 +81,7 @@ func Test_GetProducts(t *testing.T) {
 		},
 	}
 
-	for _, prd := range pp {
-		mockProduct(t, dbh, prd)
-	}
+	mockProducts(t, dbh, pp...)
 
 	res, err := GetProducts(context.Background(), dbh)
 	require.NoError(t, err)
@@ -133,9 +131,7 @@ func Test_GetProductByID(t *testing.T) {
 		},
 	}
 
-	for _, prd := range pp {
-		mockProduct(t, dbh, prd)
-	}
+	mockProducts(t, dbh, pp...)
 
 	t.Run("not found", func(t *testing.T) {
 		res, err := GetProductByID(context.Background(), dbh, xid.New())
@@ -167,7 +163,7 @@ func Test_UpdateProductByID(t *testing.T) {
 		},
 	}
 
-	mockProduct(t, dbh, prd)
+	mockProducts(t, dbh, prd)
 
 	prd.Name = "12"
 	prd.Serving.Calories = 200
@@ -195,7 +191,7 @@ func Test_DeleteProductByID(t *testing.T) {
 		},
 	}
 
-	mockProduct(t, dbh, prd)
+	mockProducts(t, dbh, prd)
 
 	pp := retrieveProducts(t, dbh)
 	require.Len(t, pp, 1)
@@ -248,9 +244,7 @@ func Test_selectProduct(t *testing.T) {
 		},
 	}
 
-	for _, prd := range pp {
-		mockProduct(t, dbh, prd)
-	}
+	mockProducts(t, dbh, pp...)
 
 	res, err := selectProducts(context.Background(), dbh, func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
 		return sb
@@ -259,21 +253,23 @@ func Test_selectProduct(t *testing.T) {
 	assert.Equal(t, retrieveProducts(t, dbh), res)
 }
 
-func mockProduct(t *testing.T, dbh *sql.DB, prd core.Product) {
+func mockProducts(t *testing.T, dbh *sql.DB, pp ...core.Product) {
 	t.Helper()
 
-	_, err := squirrel.ExecWith(
-		dbh,
-		squirrel.Insert("products").SetMap(map[string]interface{}{
-			"products.id":               prd.ID,
-			"products.name":             prd.Name,
-			"products.serving_type":     prd.Serving.Type,
-			"products.serving_size":     prd.Serving.Size,
-			"products.serving_calories": prd.Serving.Calories,
-			"products.created_at":       prd.CreatedAt,
-		}),
-	)
-	require.NoError(t, err)
+	for _, prd := range pp {
+		_, err := squirrel.ExecWith(
+			dbh,
+			squirrel.Insert("products").SetMap(map[string]interface{}{
+				"products.id":               prd.ID,
+				"products.name":             prd.Name,
+				"products.serving_type":     prd.Serving.Type,
+				"products.serving_size":     prd.Serving.Size,
+				"products.serving_calories": prd.Serving.Calories,
+				"products.created_at":       prd.CreatedAt,
+			}),
+		)
+		require.NoError(t, err)
+	}
 }
 
 func retrieveProducts(t *testing.T, dbh *sql.DB) []core.Product {

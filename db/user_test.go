@@ -74,9 +74,7 @@ func Test_GetUsers(t *testing.T) {
 		},
 	}
 
-	for _, usr := range uu {
-		mockUser(t, dbh, usr)
-	}
+	mockUsers(t, dbh, uu...)
 
 	res, err := GetUsers(context.Background(), dbh)
 	require.NoError(t, err)
@@ -111,9 +109,7 @@ func Test_GetUserByName(t *testing.T) {
 		},
 	}
 
-	for _, usr := range uu {
-		mockUser(t, dbh, usr)
-	}
+	mockUsers(t, dbh, uu...)
 
 	t.Run("not found", func(t *testing.T) {
 		res, err := GetUserByName(context.Background(), dbh, "3")
@@ -156,9 +152,7 @@ func Test_GetUserByID(t *testing.T) {
 		},
 	}
 
-	for _, usr := range uu {
-		mockUser(t, dbh, usr)
-	}
+	mockUsers(t, dbh, uu...)
 
 	t.Run("not found", func(t *testing.T) {
 		res, err := GetUserByID(context.Background(), dbh, xid.New())
@@ -185,7 +179,7 @@ func Test_UpdateUserPasswordByID(t *testing.T) {
 		Admin:        false,
 	}
 
-	mockUser(t, dbh, usr)
+	mockUsers(t, dbh, usr)
 
 	err := UpdateUserPasswordByID(context.Background(), dbh, usr.ID, []byte{2})
 	require.NoError(t, err)
@@ -209,7 +203,7 @@ func Test_DeleteUserByID(t *testing.T) {
 		Admin:        false,
 	}
 
-	mockUser(t, dbh, usr)
+	mockUsers(t, dbh, usr)
 
 	uu := retrieveUsers(t, dbh)
 	require.Len(t, uu, 1)
@@ -247,9 +241,7 @@ func Test_selectUsers(t *testing.T) {
 		},
 	}
 
-	for _, usr := range uu {
-		mockUser(t, dbh, usr)
-	}
+	mockUsers(t, dbh, uu...)
 
 	res, err := selectUsers(context.Background(), dbh, func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
 		return sb
@@ -258,20 +250,22 @@ func Test_selectUsers(t *testing.T) {
 	assert.Equal(t, retrieveUsers(t, dbh), res)
 }
 
-func mockUser(t *testing.T, dbh *sql.DB, usr core.User) {
+func mockUsers(t *testing.T, dbh *sql.DB, usrs ...core.User) {
 	t.Helper()
 
-	_, err := squirrel.ExecWith(
-		dbh,
-		squirrel.Insert("users").SetMap(map[string]interface{}{
-			"users.id":            usr.ID,
-			"users.name":          usr.Name,
-			"users.password_hash": usr.PasswordHash,
-			"users.admin":         usr.Admin,
-			"users.created_at":    usr.CreatedAt,
-		}),
-	)
-	require.NoError(t, err)
+	for _, usr := range usrs {
+		_, err := squirrel.ExecWith(
+			dbh,
+			squirrel.Insert("users").SetMap(map[string]interface{}{
+				"users.id":            usr.ID,
+				"users.name":          usr.Name,
+				"users.password_hash": usr.PasswordHash,
+				"users.admin":         usr.Admin,
+				"users.created_at":    usr.CreatedAt,
+			}),
+		)
+		require.NoError(t, err)
+	}
 }
 
 func retrieveUsers(t *testing.T, dbh *sql.DB) []core.User {
