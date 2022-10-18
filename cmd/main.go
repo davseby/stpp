@@ -31,7 +31,7 @@ func main() {
 			Fatal("cannot connect to the database")
 	}
 
-	if err := db.Migrate(dsn); err != nil {
+	if err := db.Migrate(dbh); err != nil {
 		logrus.WithError(err).
 			Fatal("cannot apply migrations to the database")
 	}

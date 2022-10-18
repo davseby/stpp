@@ -18,7 +18,7 @@ func InsertUser(
 	adm bool,
 ) (*core.User, error) {
 
-	user := core.User{
+	usr := core.User{
 		ID:           xid.New(),
 		Name:         name,
 		PasswordHash: ph,
@@ -30,18 +30,18 @@ func InsertUser(
 		ctx,
 		ec,
 		squirrel.Insert("users").SetMap(map[string]interface{}{
-			"users.id":            user.ID,
-			"users.name":          user.Name,
-			"users.password_hash": user.PasswordHash,
-			"users.admin":         user.Admin,
-			"users.created_at":    user.CreatedAt,
+			"users.id":            usr.ID,
+			"users.name":          usr.Name,
+			"users.password_hash": usr.PasswordHash,
+			"users.admin":         usr.Admin,
+			"users.created_at":    usr.CreatedAt,
 		}),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	return &user, nil
+	return &usr, nil
 }
 
 // GetUsers retrieves all users.
