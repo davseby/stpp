@@ -19,9 +19,22 @@ const (
 	jwtExpiresAfter = time.Hour * 24
 )
 
-// IssueJWT issues a jwt with the specified parameters. Returns a
+// JWTAuthorizer authorizes based on JWT.
+type JWTAuthorizer struct {
+	secret []byte
+}
+
+// NewJWTAuth creates a structure which is able to authorize and authenticate
+// information.
+func NewJWTAuth(secret []byte) *JWTAuthorizer {
+	return &JWTAuthorizer{
+		secret: secret,
+	}
+}
+
+// Issue issues a jwt with the specified parameters. Returns a
 // serialized token and a serialization error, if any.
-func IssueJWT(secret []byte, id xid.ID, admin bool, tstamp time.Time) ([]byte, error) {
+func (ja *JWTAuthorizer) Issue(id xid.ID, admin bool, tstamp time.Time) ([]byte, error) {
 	token := jws.NewJWT(jws.Claims{}, crypto.SigningMethodHS256)
 
 	// core claims, defined in RFC.
@@ -34,7 +47,7 @@ func IssueJWT(secret []byte, id xid.ID, admin bool, tstamp time.Time) ([]byte, e
 	// custom claim for permissions.
 	token.Claims().Set("adm", admin)
 
-	data, err := token.Serialize(secret)
+	data, err := token.Serialize(ja.secret)
 	if err != nil {
 		// unlikely to happen.
 		return nil, err
@@ -43,14 +56,14 @@ func IssueJWT(secret []byte, id xid.ID, admin bool, tstamp time.Time) ([]byte, e
 	return data, nil
 }
 
-// ParseJWT parses a jwt and validates the data.
-func ParseJWT(secret, data []byte, tstamp time.Time) (xid.ID, bool, *apierr.Error) {
+// Parse parses a jwt and validates the data.
+func (ja *JWTAuthorizer) Parse(data []byte, tstamp time.Time) (xid.ID, bool, *apierr.Error) {
 	token, err := jws.ParseJWT(data)
 	if err != nil {
 		return xid.NilID(), false, apierr.Unauthorized()
 	}
 
-	err = token.Validate(secret, crypto.SigningMethodHS256)
+	err = token.Validate(ja.secret, crypto.SigningMethodHS256)
 	if err != nil {
 		return xid.NilID(), false, apierr.Unauthorized()
 	}

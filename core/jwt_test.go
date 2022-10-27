@@ -10,13 +10,21 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_IssueJWT(t *testing.T) {
+func Test_NewJWTAuth(t *testing.T) {
+	ja := NewJWTAuth([]byte{1, 2, 3})
+	require.NotNil(t, ja)
+	assert.Equal(t, []byte{1, 2, 3}, ja.secret)
+}
+
+func Test_JWTAuthorizer_Issue(t *testing.T) {
 	tstamp := time.Date(2000, time.April, 15, 10, 0, 0, 0, time.UTC)
 
 	id, err := xid.FromString("73s3r876i1e72n4h3d40")
 	require.NoError(t, err)
 
-	sjwt, err := IssueJWT([]byte{1, 2, 3}, id, true, tstamp.Add(time.Minute))
+	ja := NewJWTAuth([]byte{1, 2, 3})
+
+	sjwt, err := ja.Issue(id, true, tstamp.Add(time.Minute))
 	require.NoError(t, err)
 
 	assert.Equal(
@@ -26,9 +34,10 @@ func Test_IssueJWT(t *testing.T) {
 	)
 }
 
-func Test_ParseJWT(t *testing.T) {
+func Test_JWTAuthorizer_Parse(t *testing.T) {
 	tstamp := time.Date(2000, time.April, 15, 10, 0, 0, 0, time.UTC)
-	secret := []byte{1, 2, 3}
+
+	ja := NewJWTAuth([]byte{1, 2, 3})
 
 	id, err := xid.FromString("73s3r876i1e72n4h3d40")
 	require.NoError(t, err)
@@ -87,7 +96,7 @@ func Test_ParseJWT(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			id, admin, err := ParseJWT(secret, test.Data, test.Tstamp)
+			id, admin, err := ja.Parse(test.Data, test.Tstamp)
 			if test.Error != nil {
 				assert.Equal(t, xid.NilID(), id)
 				assert.False(t, admin)

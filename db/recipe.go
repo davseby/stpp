@@ -246,7 +246,7 @@ func selectRecipes(
 	return rr, nil
 }
 
-// GetRecipeProductsByPorudctID selects recipe products by the product id.
+// GetRecipeProductsByPruductID selects recipe products by the product id.
 func GetRecipeProductsByProductID(
 	ctx context.Context,
 	qc squirrel.QueryerContext,

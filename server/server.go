@@ -1,3 +1,5 @@
+//
+//go:generate moq --stub -out 0moq_test.go . Authorizer:AuthorizerMock
 package server
 
 import (
@@ -28,6 +30,15 @@ const (
 	contextKeyAdmin
 )
 
+// Authorizer should authorize requests.
+type Authorizer interface {
+	// Issue should issue a new authorization data.
+	Issue(id xid.ID, admin bool, tstamp time.Time) ([]byte, error)
+
+	// Parse should parse authorization data.
+	Parse(data []byte, tstamp time.Time) (xid.ID, bool, *apierr.Error)
+}
+
 // Server contains structures and data that is required to run a web
 // server.
 type Server struct {
@@ -41,16 +52,16 @@ type Server struct {
 	// clients connections pool.
 	serv *http.Server
 
-	// secret specifies the secret that is used to generate jwt hash.
-	secret []byte
+	// auth is used to authorize clients.
+	auth Authorizer
 }
 
 // NewServer creates a fresh instance of the server.
 func NewServer(db *sql.DB, port string, secret []byte) *Server {
 	s := &Server{
-		log:    logrus.New(),
-		db:     db,
-		secret: secret,
+		log:  logrus.New(),
+		db:   db,
+		auth: core.NewJWTAuth(secret),
 	}
 
 	s.serv = &http.Server{
@@ -151,16 +162,16 @@ func (s *Server) GetVersion(w http.ResponseWriter, r *http.Request) {
 func (s *Server) authorize(super bool) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			sjwt, aerr := s.extractAuthorizationToken(r)
+			token, aerr := s.extractAuthorizationToken(r)
 			if aerr != nil {
 				aerr.Respond(w)
 				return
 			}
 
-			id, admin, aerr := core.ParseJWT(s.secret, sjwt, time.Now())
+			id, admin, aerr := s.auth.Parse(token, time.Now())
 			if aerr != nil {
 				if aerr == apierr.Internal() {
-					s.log.WithField("token", sjwt).Error("parsing jwt token")
+					s.log.WithField("token", token).Error("parsing token")
 				}
 
 				aerr.Respond(w)

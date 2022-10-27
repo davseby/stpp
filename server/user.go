@@ -294,9 +294,9 @@ func (s *Server) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sjwt, err := core.IssueJWT(s.secret, usr.ID, usr.Admin, time.Now())
+	token, err := s.auth.Issue(usr.ID, usr.Admin, time.Now())
 	if err != nil {
-		s.log.WithError(err).Error("creating jwt")
+		s.log.WithError(err).Error("creating a token")
 		apierr.Internal().Respond(w)
 		return
 	}
@@ -306,7 +306,7 @@ func (s *Server) Login(w http.ResponseWriter, r *http.Request) {
 		AccessToken string     `json:"access_token"`
 	}{
 		User:        usr,
-		AccessToken: string(sjwt),
+		AccessToken: string(token),
 	})
 }
 
@@ -371,9 +371,9 @@ func (s *Server) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sjwt, err := core.IssueJWT(s.secret, usr.ID, usr.Admin, time.Now())
+	token, err := s.auth.Issue(usr.ID, usr.Admin, time.Now())
 	if err != nil {
-		s.log.WithError(err).Error("creating jwt")
+		s.log.WithError(err).Error("creating a token")
 		apierr.Internal().Respond(w)
 		return
 	}
@@ -383,6 +383,6 @@ func (s *Server) Register(w http.ResponseWriter, r *http.Request) {
 		AccessToken string     `json:"access_token"`
 	}{
 		User:        usr,
-		AccessToken: string(sjwt),
+		AccessToken: string(token),
 	})
 }
