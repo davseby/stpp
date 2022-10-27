@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_InsertRecipe(t *testing.T) {
+func Test_InsertPlan(t *testing.T) {
 	dbh := dbFn(t)
 	cleanUpTables(t, dbh)
 
@@ -26,23 +26,23 @@ func Test_InsertRecipe(t *testing.T) {
 		Admin:        true,
 	})
 
-	rcp := core.RecipeCore{
+	pc := core.PlanCore{
 		Name:        "123",
 		Description: "123",
-		Products: []core.RecipeProduct{
+		Recipes: []core.PlanRecipe{
 			{
-				ProductID: xid.New(),
-				Quantity:  decimal.New(4000, -4),
+				RecipeID: xid.New(),
+				Quantity: 2,
 			},
 		},
 	}
 
 	t.Run("foreign key constraint fails", func(t *testing.T) {
-		rec, err := InsertRecipe(
+		rec, err := InsertPlan(
 			context.Background(),
 			dbh,
 			uid,
-			rcp,
+			pc,
 		)
 		require.Nil(t, rec)
 		require.Error(t, err)
@@ -61,28 +61,44 @@ func Test_InsertRecipe(t *testing.T) {
 		},
 	})
 
-	rcp.Products = []core.RecipeProduct{
+	rid := xid.New()
+	mockRecipes(t, dbh, core.Recipe{
+		ID: rid,
+		RecipeCore: core.RecipeCore{
+			Name:        "123124",
+			Description: "48924",
+			Products: []core.RecipeProduct{
+				{
+					RecipeID:  rid,
+					ProductID: pid,
+					Quantity:  decimal.New(4000, -4),
+				},
+			},
+		},
+	})
+
+	pc.Recipes = []core.PlanRecipe{
 		{
-			ProductID: pid,
-			Quantity:  decimal.New(4000, -4),
+			RecipeID: rid,
+			Quantity: 9,
 		},
 	}
 
-	t.Run("succesfully inserted a new recipe", func(t *testing.T) {
-		rec, err := InsertRecipe(
+	t.Run("succesfully inserted a new plan", func(t *testing.T) {
+		rec, err := InsertPlan(
 			context.Background(),
 			dbh,
 			uid,
-			rcp,
+			pc,
 		)
 		require.NoError(t, err)
 		assert.NotEmpty(t, rec.ID)
 		assert.NotEmpty(t, rec.CreatedAt)
-		assert.Equal(t, rcp, rec.RecipeCore)
+		assert.Equal(t, pc, rec.PlanCore)
 	})
 }
 
-func Test_GetRecipes(t *testing.T) {
+func Test_GetPlans(t *testing.T) {
 	dbh := dbFn(t)
 	cleanUpTables(t, dbh)
 
@@ -218,12 +234,88 @@ func Test_GetRecipes(t *testing.T) {
 
 	mockRecipes(t, dbh, rr...)
 
-	res, err := GetRecipes(context.Background(), dbh)
+	plid1 := xid.New()
+	plid2 := xid.New()
+	plid3 := xid.New()
+	pp := []core.Plan{
+		{
+			ID:        plid1,
+			CreatedAt: time.Now().UTC().Truncate(time.Second),
+			UserID:    uid1,
+			PlanCore: core.PlanCore{
+				Name:        "1",
+				Description: "test1",
+				Recipes: []core.PlanRecipe{
+					{
+						PlanID:   plid1,
+						RecipeID: rid1,
+						Quantity: 3,
+					},
+					{
+						PlanID:   plid1,
+						RecipeID: rid3,
+						Quantity: 2,
+					},
+				},
+			},
+		},
+		{
+			ID:        plid2,
+			CreatedAt: time.Now().UTC().Truncate(time.Second),
+			UserID:    uid2,
+			PlanCore: core.PlanCore{
+				Name:        "0",
+				Description: "test9",
+				Recipes: []core.PlanRecipe{
+					{
+						PlanID:   plid2,
+						RecipeID: rid1,
+						Quantity: 2,
+					},
+					{
+						PlanID:   plid2,
+						RecipeID: rid2,
+						Quantity: 3,
+					},
+				},
+			},
+		},
+		{
+			ID:        plid3,
+			CreatedAt: time.Now().UTC().Truncate(time.Second),
+			UserID:    uid2,
+			PlanCore: core.PlanCore{
+				Name:        "4",
+				Description: "test3",
+				Recipes: []core.PlanRecipe{
+					{
+						PlanID:   plid3,
+						RecipeID: rid1,
+						Quantity: 4,
+					},
+					{
+						PlanID:   plid3,
+						RecipeID: rid2,
+						Quantity: 2,
+					},
+					{
+						PlanID:   plid3,
+						RecipeID: rid3,
+						Quantity: 5,
+					},
+				},
+			},
+		},
+	}
+
+	mockPlans(t, dbh, pp...)
+
+	res, err := GetPlans(context.Background(), dbh)
 	require.NoError(t, err)
-	assert.Equal(t, rr, res)
+	assert.Equal(t, pp, res)
 }
 
-func Test_GetRecipesByUserID(t *testing.T) {
+func Test_GetPlansByUserID(t *testing.T) {
 	dbh := dbFn(t)
 	cleanUpTables(t, dbh)
 
@@ -359,12 +451,88 @@ func Test_GetRecipesByUserID(t *testing.T) {
 
 	mockRecipes(t, dbh, rr...)
 
-	res, err := GetRecipesByUserID(context.Background(), dbh, uid2)
+	plid1 := xid.New()
+	plid2 := xid.New()
+	plid3 := xid.New()
+	pp := []core.Plan{
+		{
+			ID:        plid1,
+			CreatedAt: time.Now().UTC().Truncate(time.Second),
+			UserID:    uid1,
+			PlanCore: core.PlanCore{
+				Name:        "1",
+				Description: "test1",
+				Recipes: []core.PlanRecipe{
+					{
+						PlanID:   plid1,
+						RecipeID: rid1,
+						Quantity: 3,
+					},
+					{
+						PlanID:   plid1,
+						RecipeID: rid3,
+						Quantity: 2,
+					},
+				},
+			},
+		},
+		{
+			ID:        plid2,
+			CreatedAt: time.Now().UTC().Truncate(time.Second),
+			UserID:    uid2,
+			PlanCore: core.PlanCore{
+				Name:        "0",
+				Description: "test9",
+				Recipes: []core.PlanRecipe{
+					{
+						PlanID:   plid2,
+						RecipeID: rid1,
+						Quantity: 2,
+					},
+					{
+						PlanID:   plid2,
+						RecipeID: rid2,
+						Quantity: 3,
+					},
+				},
+			},
+		},
+		{
+			ID:        plid3,
+			CreatedAt: time.Now().UTC().Truncate(time.Second),
+			UserID:    uid2,
+			PlanCore: core.PlanCore{
+				Name:        "4",
+				Description: "test3",
+				Recipes: []core.PlanRecipe{
+					{
+						PlanID:   plid3,
+						RecipeID: rid1,
+						Quantity: 4,
+					},
+					{
+						PlanID:   plid3,
+						RecipeID: rid2,
+						Quantity: 2,
+					},
+					{
+						PlanID:   plid3,
+						RecipeID: rid3,
+						Quantity: 5,
+					},
+				},
+			},
+		},
+	}
+
+	mockPlans(t, dbh, pp...)
+
+	res, err := GetPlansByUserID(context.Background(), dbh, uid2)
 	require.NoError(t, err)
-	assert.Equal(t, rr[1:], res)
+	assert.Equal(t, pp[1:], res)
 }
 
-func Test_GetRecipeByID(t *testing.T) {
+func Test_GetPlanByID(t *testing.T) {
 	dbh := dbFn(t)
 	cleanUpTables(t, dbh)
 
@@ -428,20 +596,40 @@ func Test_GetRecipeByID(t *testing.T) {
 
 	mockRecipes(t, dbh, rcp)
 
+	plid1 := xid.New()
+	pln := core.Plan{
+		ID:        plid1,
+		CreatedAt: time.Now().UTC().Truncate(time.Second),
+		UserID:    uid1,
+		PlanCore: core.PlanCore{
+			Name:        "1",
+			Description: "test1",
+			Recipes: []core.PlanRecipe{
+				{
+					PlanID:   plid1,
+					RecipeID: rid1,
+					Quantity: 3,
+				},
+			},
+		},
+	}
+
+	mockPlans(t, dbh, pln)
+
 	t.Run("not found", func(t *testing.T) {
-		res, err := GetRecipeByID(context.Background(), dbh, xid.New())
+		res, err := GetPlanByID(context.Background(), dbh, xid.New())
 		assert.Empty(t, res)
 		require.Equal(t, ErrNotFound, err)
 	})
 
-	t.Run("successfully retrieved a recipe by id", func(t *testing.T) {
-		res, err := GetRecipeByID(context.Background(), dbh, rcp.ID)
+	t.Run("successfully retrieved a plan by id", func(t *testing.T) {
+		res, err := GetPlanByID(context.Background(), dbh, pln.ID)
 		require.NoError(t, err)
-		assert.Equal(t, &rcp, res)
+		assert.Equal(t, &pln, res)
 	})
 }
 
-func Test_UpdateRecipeByID(t *testing.T) {
+func Test_UpdatePlanByID(t *testing.T) {
 	dbh := dbFn(t)
 	cleanUpTables(t, dbh)
 
@@ -481,46 +669,90 @@ func Test_UpdateRecipeByID(t *testing.T) {
 	}...)
 
 	rid1 := xid.New()
-	rcp := core.Recipe{
-		ID:        rid1,
-		CreatedAt: time.Now().UTC().Truncate(time.Second),
-		UserID:    uid1,
-		RecipeCore: core.RecipeCore{
-			Name:        "1",
-			Description: "test1",
-			Products: []core.RecipeProduct{
-				{
-					RecipeID:  rid1,
-					ProductID: pid1,
-					Quantity:  decimal.New(1000, -4),
+	rid2 := xid.New()
+	rr := []core.Recipe{
+		{
+			ID:        rid1,
+			CreatedAt: time.Now().UTC().Truncate(time.Second),
+			UserID:    uid1,
+			RecipeCore: core.RecipeCore{
+				Name:        "1",
+				Description: "test1",
+				Products: []core.RecipeProduct{
+					{
+						RecipeID:  rid1,
+						ProductID: pid1,
+						Quantity:  decimal.New(1000, -4),
+					},
+					{
+						RecipeID:  rid1,
+						ProductID: pid2,
+						Quantity:  decimal.New(3000, -4),
+					},
+				},
+			},
+		},
+		{
+			ID:        rid2,
+			CreatedAt: time.Now().UTC().Truncate(time.Second),
+			UserID:    uid1,
+			RecipeCore: core.RecipeCore{
+				Name:        "0",
+				Description: "test9",
+				Products: []core.RecipeProduct{
+					{
+						RecipeID:  rid2,
+						ProductID: pid2,
+						Quantity:  decimal.New(2000, -4),
+					},
 				},
 			},
 		},
 	}
 
-	mockRecipes(t, dbh, rcp)
+	mockRecipes(t, dbh, rr...)
 
-	rcp.Name = "999"
-	rcp.Description = "34124"
-	rcp.Products = []core.RecipeProduct{
-		{
-			RecipeID:  rid1,
-			ProductID: pid1,
-			Quantity:  decimal.New(3000, -4),
-		},
-		{
-			RecipeID:  rid1,
-			ProductID: pid2,
-			Quantity:  decimal.New(9000, -4),
+	plid1 := xid.New()
+	pln := core.Plan{
+		ID:        plid1,
+		CreatedAt: time.Now().UTC().Truncate(time.Second),
+		UserID:    uid1,
+		PlanCore: core.PlanCore{
+			Name:        "1",
+			Description: "test1",
+			Recipes: []core.PlanRecipe{
+				{
+					PlanID:   plid1,
+					RecipeID: rid1,
+					Quantity: 3,
+				},
+			},
 		},
 	}
 
-	res, err := UpdateRecipeByID(context.Background(), dbh, rcp.ID, rcp.RecipeCore)
+	mockPlans(t, dbh, pln)
+
+	pln.Name = "another"
+	pln.Description = "test"
+	pln.Recipes = []core.PlanRecipe{
+		{
+			PlanID:   plid1,
+			RecipeID: rid1,
+			Quantity: 1,
+		},
+		{
+			PlanID:   plid1,
+			RecipeID: rid2,
+			Quantity: 2,
+		},
+	}
+
+	res, err := UpdatePlanByID(context.Background(), dbh, pln.ID, pln.PlanCore)
 	require.NoError(t, err)
-	assert.Equal(t, &rcp, res)
+	assert.Equal(t, &pln, res)
 }
 
-func Test_DeleteRecipeByID(t *testing.T) {
+func Test_DeletePlanByID(t *testing.T) {
 	dbh := dbFn(t)
 	cleanUpTables(t, dbh)
 
@@ -579,15 +811,35 @@ func Test_DeleteRecipeByID(t *testing.T) {
 
 	mockRecipes(t, dbh, rcp)
 
-	rr := retrieveRecipes(t, dbh)
-	require.Len(t, rr, 1)
-	assert.Equal(t, rcp, rr[0])
+	plid1 := xid.New()
+	pln := core.Plan{
+		ID:        plid1,
+		CreatedAt: time.Now().UTC().Truncate(time.Second),
+		UserID:    uid1,
+		PlanCore: core.PlanCore{
+			Name:        "1",
+			Description: "test1",
+			Recipes: []core.PlanRecipe{
+				{
+					PlanID:   plid1,
+					RecipeID: rid1,
+					Quantity: 3,
+				},
+			},
+		},
+	}
 
-	require.NoError(t, DeleteRecipeByID(context.Background(), dbh, rcp.ID))
-	require.Len(t, retrieveRecipes(t, dbh), 0)
+	mockPlans(t, dbh, pln)
+
+	pp := retrievePlans(t, dbh)
+	require.Len(t, pp, 1)
+	assert.Equal(t, pln, pp[0])
+
+	require.NoError(t, DeletePlanByID(context.Background(), dbh, pln.ID))
+	require.Len(t, retrievePlans(t, dbh), 0)
 }
 
-func Test_GetRecipeProductsByProductID(t *testing.T) {
+func Test_GetPlanRecipesByRecipeID(t *testing.T) {
 	dbh := dbFn(t)
 	cleanUpTables(t, dbh)
 
@@ -723,108 +975,184 @@ func Test_GetRecipeProductsByProductID(t *testing.T) {
 
 	mockRecipes(t, dbh, rr...)
 
-	res, err := GetRecipeProductsByProductID(context.Background(), dbh, pid2)
-	require.NoError(t, err)
-	assert.Equal(t, []core.RecipeProduct{
+	plid1 := xid.New()
+	plid2 := xid.New()
+	plid3 := xid.New()
+	pp := []core.Plan{
 		{
-			RecipeID:  rid2,
-			ProductID: pid2,
-			Quantity:  decimal.New(2000, -4),
+			ID:        plid1,
+			CreatedAt: time.Now().UTC().Truncate(time.Second),
+			UserID:    uid1,
+			PlanCore: core.PlanCore{
+				Name:        "1",
+				Description: "test1",
+				Recipes: []core.PlanRecipe{
+					{
+						PlanID:   plid1,
+						RecipeID: rid1,
+						Quantity: 3,
+					},
+					{
+						PlanID:   plid1,
+						RecipeID: rid3,
+						Quantity: 2,
+					},
+				},
+			},
 		},
 		{
-			RecipeID:  rid3,
-			ProductID: pid2,
-			Quantity:  decimal.New(8000, -4),
+			ID:        plid2,
+			CreatedAt: time.Now().UTC().Truncate(time.Second),
+			UserID:    uid2,
+			PlanCore: core.PlanCore{
+				Name:        "0",
+				Description: "test9",
+				Recipes: []core.PlanRecipe{
+					{
+						PlanID:   plid2,
+						RecipeID: rid1,
+						Quantity: 2,
+					},
+					{
+						PlanID:   plid2,
+						RecipeID: rid2,
+						Quantity: 3,
+					},
+				},
+			},
+		},
+		{
+			ID:        plid3,
+			CreatedAt: time.Now().UTC().Truncate(time.Second),
+			UserID:    uid2,
+			PlanCore: core.PlanCore{
+				Name:        "4",
+				Description: "test3",
+				Recipes: []core.PlanRecipe{
+					{
+						PlanID:   plid3,
+						RecipeID: rid1,
+						Quantity: 4,
+					},
+					{
+						PlanID:   plid3,
+						RecipeID: rid2,
+						Quantity: 2,
+					},
+					{
+						PlanID:   plid3,
+						RecipeID: rid3,
+						Quantity: 5,
+					},
+				},
+			},
+		},
+	}
+
+	mockPlans(t, dbh, pp...)
+
+	res, err := GetPlanRecipesByRecipeID(context.Background(), dbh, rid2)
+	require.NoError(t, err)
+	assert.Equal(t, []core.PlanRecipe{
+		{
+			PlanID:   plid2,
+			RecipeID: rid2,
+			Quantity: 3,
+		},
+		{
+			PlanID:   plid3,
+			RecipeID: rid2,
+			Quantity: 2,
 		},
 	}, res)
 }
 
-func mockRecipes(t *testing.T, dbh *sql.DB, rr ...core.Recipe) {
+func mockPlans(t *testing.T, dbh *sql.DB, pp ...core.Plan) {
 	t.Helper()
 
-	for _, rcp := range rr {
+	for _, pl := range pp {
 		_, err := squirrel.ExecWith(
 			dbh,
-			squirrel.Insert("recipes").SetMap(map[string]interface{}{
-				"recipes.id":          rcp.ID,
-				"recipes.user_id":     rcp.UserID,
-				"recipes.name":        rcp.Name,
-				"recipes.description": rcp.Description,
-				"recipes.created_at":  rcp.CreatedAt,
+			squirrel.Insert("plans").SetMap(map[string]interface{}{
+				"plans.id":          pl.ID,
+				"plans.user_id":     pl.UserID,
+				"plans.name":        pl.Name,
+				"plans.description": pl.Description,
+				"plans.created_at":  pl.CreatedAt,
 			}),
 		)
 		require.NoError(t, err)
 
-		for _, rp := range rcp.Products {
+		for _, pr := range pl.Recipes {
 			_, err = squirrel.ExecWith(
 				dbh,
-				squirrel.Insert("recipe_products").SetMap(map[string]interface{}{
-					"recipe_products.recipe_id":  rp.RecipeID,
-					"recipe_products.product_id": rp.ProductID,
-					"recipe_products.quantity":   rp.Quantity,
-				}).Suffix("ON DUPLICATE KEY UPDATE recipe_products.quantity = VALUES(recipe_products.quantity)"),
+				squirrel.Insert("plan_recipes").SetMap(map[string]interface{}{
+					"plan_recipes.plan_id":   pr.PlanID,
+					"plan_recipes.recipe_id": pr.RecipeID,
+					"plan_recipes.quantity":  pr.Quantity,
+				}).Suffix("ON DUPLICATE KEY UPDATE plan_recipes.quantity = VALUES(plan_recipes.quantity)"),
 			)
 			require.NoError(t, err)
 		}
 	}
 }
 
-func retrieveRecipes(t *testing.T, dbh *sql.DB) []core.Recipe {
+func retrievePlans(t *testing.T, dbh *sql.DB) []core.Plan {
 	rows, err := squirrel.QueryWith(dbh, squirrel.
 		Select(
-			"recipes.id",
-			"recipes.user_id",
-			"recipes.name",
-			"recipes.description",
-			"recipes.created_at",
-		).From("recipes"),
+			"plans.id",
+			"plans.user_id",
+			"plans.name",
+			"plans.description",
+			"plans.created_at",
+		).From("plans"),
 	)
 	require.NoError(t, err)
 	defer rows.Close()
 
-	rr := make([]core.Recipe, 0)
+	pp := make([]core.Plan, 0)
 	for rows.Next() {
-		var rec core.Recipe
+		var pl core.Plan
 		require.NoError(t, rows.Scan(
-			&rec.ID,
-			&rec.UserID,
-			&rec.Name,
-			&rec.Description,
-			&rec.CreatedAt,
+			&pl.ID,
+			&pl.UserID,
+			&pl.Name,
+			&pl.Description,
+			&pl.CreatedAt,
 		))
 
-		rec.Products = retrieveRecipeProducts(t, dbh, rec.ID)
-		rr = append(rr, rec)
+		pl.Recipes = retrievePlanRecipes(t, dbh, pl.ID)
+		pp = append(pp, pl)
 	}
 
-	return rr
+	return pp
 }
 
-func retrieveRecipeProducts(t *testing.T, dbh *sql.DB, rid xid.ID) []core.RecipeProduct {
+func retrievePlanRecipes(t *testing.T, dbh *sql.DB, pid xid.ID) []core.PlanRecipe {
 	rows, err := squirrel.QueryWith(dbh, squirrel.
 		Select(
-			"recipe_products.recipe_id",
-			"recipe_products.product_id",
-			"recipe_products.quantity",
-		).From("recipe_products").
+			"plan_recipes.plan_id",
+			"plan_recipes.recipe_id",
+			"plan_recipes.quantity",
+		).From("plan_recipes").
 		Where(squirrel.Eq{
-			"recipe_products.recipe_id": rid,
+			"plan_recipes.plan_id": pid,
 		}),
 	)
 	require.NoError(t, err)
 	defer rows.Close()
 
-	rps := make([]core.RecipeProduct, 0)
+	prs := make([]core.PlanRecipe, 0)
 	for rows.Next() {
-		var rp core.RecipeProduct
+		var pr core.PlanRecipe
 		require.NoError(t, rows.Scan(
-			&rp.RecipeID,
-			&rp.ProductID,
-			&rp.Quantity,
+			&pr.PlanID,
+			&pr.RecipeID,
+			&pr.Quantity,
 		))
 
-		rps = append(rps, rp)
+		prs = append(prs, pr)
 	}
 
-	return rps
+	return prs
 }

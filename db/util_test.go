@@ -82,6 +82,11 @@ func setupDB() (cleanup func()) {
 		return
 	}
 
+	dbh.Exec("DELETE FROM plans")
+	dbh.Exec("DELETE FROM recipes")
+	dbh.Exec("DELETE FROM products")
+	dbh.Exec("DELETE FROM users")
+
 	dbFn = func(t *testing.T) *sql.DB {
 		return dbh
 	}
