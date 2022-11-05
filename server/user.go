@@ -32,6 +32,22 @@ func (s *Server) CreateAdminUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_, err = db.GetUserByName(r.Context(), s.db, ui.Name)
+	switch err {
+	case db.ErrNotFound:
+		// OK.
+	case nil:
+		apierr.Conflict("user").Respond(w)
+		return
+	case r.Context().Err():
+		apierr.Context().Respond(w)
+		return
+	default:
+		s.log.WithError(err).Error("fetching user by name")
+		apierr.Database().Respond(w)
+		return
+	}
+
 	ph, err := bcrypt.GenerateFromPassword([]byte(ui.Password), bcrypt.DefaultCost)
 	if err != nil {
 		s.log.WithError(err).Error("generating bcrypt hash")
