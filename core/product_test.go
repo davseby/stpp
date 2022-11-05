@@ -15,6 +15,7 @@ func Test_ProductCore_Validate(t *testing.T) {
 	}{
 		"Invalid name": {
 			ProductCore: ProductCore{
+				Description: "123",
 				Serving: Serving{
 					Type:     ServingTypeMilliliters,
 					Size:     decimal.NewFromInt(10),
@@ -23,9 +24,20 @@ func Test_ProductCore_Validate(t *testing.T) {
 			},
 			Error: apierr.InvalidAttribute("name", "cannot be empty"),
 		},
-		"Invalid serving type": {
+		"Invalid description": {
 			ProductCore: ProductCore{
 				Name: "123",
+				Serving: Serving{
+					Size:     decimal.NewFromInt(10),
+					Calories: 50,
+				},
+			},
+			Error: apierr.InvalidAttribute("description", "cannot be empty"),
+		},
+		"Invalid serving type": {
+			ProductCore: ProductCore{
+				Name:        "123",
+				Description: "123",
 				Serving: Serving{
 					Size:     decimal.NewFromInt(10),
 					Calories: 50,
@@ -35,7 +47,8 @@ func Test_ProductCore_Validate(t *testing.T) {
 		},
 		"Invalid serving size": {
 			ProductCore: ProductCore{
-				Name: "123",
+				Name:        "123",
+				Description: "123",
 				Serving: Serving{
 					Type:     ServingTypeMilliliters,
 					Calories: 50,
@@ -45,7 +58,8 @@ func Test_ProductCore_Validate(t *testing.T) {
 		},
 		"Invalid serving calories": {
 			ProductCore: ProductCore{
-				Name: "123",
+				Name:        "123",
+				Description: "123",
 				Serving: Serving{
 					Type:     ServingTypeMilliliters,
 					Size:     decimal.NewFromInt(10),
@@ -56,7 +70,8 @@ func Test_ProductCore_Validate(t *testing.T) {
 		},
 		"Valid product core": {
 			ProductCore: ProductCore{
-				Name: "123",
+				Name:        "123",
+				Description: "123",
 				Serving: Serving{
 					Type:     ServingTypeMilliliters,
 					Size:     decimal.NewFromInt(10),

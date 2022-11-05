@@ -29,7 +29,7 @@ func Test_InsertUser(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-	t.Run("successful new user insert", func(t *testing.T) {
+	t.Run("successfully inserted a new user", func(t *testing.T) {
 		usr, err := InsertUser(
 			context.Background(),
 			dbh,

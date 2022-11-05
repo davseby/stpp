@@ -10,10 +10,13 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 )
 
 func main() {
+	decimal.MarshalJSONWithoutQuotes = true
+
 	var (
 		dsn    string
 		port   string
@@ -21,7 +24,7 @@ func main() {
 	)
 
 	flag.StringVar(&port, "port", "13307", "Server port")
-	flag.StringVar(&dsn, "db", "root:db_password@tcp(127.0.0.1:13306)/db", "Database DSN")
+	flag.StringVar(&dsn, "db", "root:db_password@tcp(127.0.0.1:13306)/db?multiStatements=true", "Database DSN")
 	flag.StringVar(&secret, "secret", "sadghi21849adgjhlh904h3u4", "JWT secret")
 	flag.Parse()
 

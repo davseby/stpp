@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"foodie/db"
 	"net"
-	"net/url"
 	"os"
 	"testing"
 
@@ -99,29 +98,19 @@ func setupDB() (cleanup func()) {
 }
 
 func getHostPort(r *dockertest.Resource, portID string) string {
-	dockerURL := os.Getenv("DOCKER_HOST")
-	if dockerURL == "" {
-		if r.Container == nil || r.Container.NetworkSettings == nil {
-			return ""
-		}
-
-		m, ok := r.Container.NetworkSettings.Ports[dc.Port(portID)]
-		if !ok || len(m) == 0 {
-			return ""
-		}
-
-		ip := m[0].HostIP
-		if ip == "0.0.0.0" || ip == "" {
-			ip = "localhost"
-		}
-
-		return net.JoinHostPort(ip, m[0].HostPort)
+	if r.Container == nil || r.Container.NetworkSettings == nil {
+		return ""
 	}
 
-	u, err := url.Parse(dockerURL)
-	if err != nil {
-		panic(err)
+	m, ok := r.Container.NetworkSettings.Ports[dc.Port(portID)]
+	if !ok || len(m) == 0 {
+		return ""
 	}
 
-	return u.Hostname() + ":" + r.GetPort(portID)
+	ip := m[0].HostIP
+	if ip == "0.0.0.0" || ip == "" {
+		ip = "localhost"
+	}
+
+	return net.JoinHostPort(ip, m[0].HostPort)
 }

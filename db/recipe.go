@@ -38,6 +38,7 @@ func InsertRecipe(
 			"recipes.id":          rec.ID,
 			"recipes.user_id":     rec.UserID,
 			"recipes.name":        rec.Name,
+			"recipes.image_url":   rec.ImageURL,
 			"recipes.description": rec.Description,
 			"recipes.created_at":  rec.CreatedAt,
 		}),
@@ -165,6 +166,7 @@ func UpdateRecipeByID(
 		tx,
 		squirrel.Update("recipes").SetMap(map[string]interface{}{
 			"recipes.name":        rc.Name,
+			"recipes.image_url":   rc.ImageURL,
 			"recipes.description": rc.Description,
 		}).Where(
 			squirrel.Eq{"recipes.id": id},
@@ -212,6 +214,7 @@ func selectRecipes(
 			"recipes.id",
 			"recipes.user_id",
 			"recipes.name",
+			"COALESCE(recipes.image_url, '')",
 			"recipes.description",
 			"recipes.created_at",
 		).From("recipes"),
@@ -228,6 +231,7 @@ func selectRecipes(
 			&rec.ID,
 			&rec.UserID,
 			&rec.Name,
+			&rec.ImageURL,
 			&rec.Description,
 			&rec.CreatedAt,
 		); err != nil {

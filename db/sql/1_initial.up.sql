@@ -15,6 +15,8 @@ INSERT INTO `users` (`id`, `name`, `password_hash`, `admin`, `created_at`) VALUE
 CREATE TABLE `products` (
 	`id` VARCHAR(20) NOT NULL,
 	`name` VARCHAR(255) NOT NULL,
+	`image_url` VARCHAR(1023) NULL,
+	`description` VARCHAR(1023) NOT NULL,
 	`serving_type` VARCHAR(15) NOT NULL,
 	`serving_size` DECIMAL(18, 4) NOT NULL,
 	`serving_calories` INTEGER NOT NULL,
@@ -22,28 +24,29 @@ CREATE TABLE `products` (
 	PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-INSERT INTO `products` (`id`, `name`, `serving_type`, `serving_size`, `serving_calories`, `created_at`) VALUES 
-("cciudtv6i1e0cuscb5jg", "Probio Oats", "grams", "100", "307", "2022-09-14 04:52:10"),
-("cciueof6i1e0du7sgp6g", "Banana", "units", "1", "105", "2022-09-15 23:52:10"),
-("cciuf5f6i1e0e49j5750", "Cashew Milk", "milliliters", "100", "23", "2022-09-15 11:11:11"),
-("cciufd76i1e0ea44drqg", "Stevia", "grams", "100", "2", "2022-09-14 22:22:22"),
-("cciufqn6i1e0faaqor4g", "Chocolate Protein Powder", "grams", "25", "110", "2022-09-15 14:32:20"),
-("cciug9v6i1e0h9q4e570", "Brown Rice", "grams", "100", "375", "2022-09-14 20:12:15"),
-("cciughv6i1e0i77h6vcg", "Chicken Breast", "grams", "100", "165", "2022-09-15 19:53:42"),
-("cciugvv6i1e0ip637jpg", "Olive Oil", "milliliters", "100", "900", "2022-09-16 15:32:14"),
-("cciuhfv6i1e0jaucp6k0", "Sugar", "grams", "100", "387", "2022-09-15 05:42:16"),
-("cciuhj76i1e0jhb8uasg", "Salt", "grams", "100", "0", "2022-09-15 03:52:10"),
-("cciuibn6i1e0kff2evfg", "Apple", "units", "1", "95", "2022-09-15 00:30:12"),
-("cciulu76i1e0vjpd3i2g", "Nestle Fitness Cereal", "grams", "100", "379", "2022-09-15 18:52:19"),
-("cciumsn6i1e11lv61jm0", "Cocumber Spread", "grams", "100", "50", "2022-09-15 09:52:10"),
-("cciunif6i1e12b5egfp0", "Rice cake", "units", "1", "20", "2022-09-15 06:59:10"),
-("cciuo7n6i1e13guo332g", "Turkey hot smoked fillet", "grams", "100", "95", "2022-09-15 05:52:10");
+INSERT INTO `products` (`id`, `name`, `description`, `serving_type`, `serving_size`, `serving_calories`, `created_at`) VALUES 
+("cciudtv6i1e0cuscb5jg", "Probio Oats", "Fresh.", "grams", "100", "307", "2022-09-14 04:52:10"),
+("cciueof6i1e0du7sgp6g", "Banana", "Curved, yellow fruit with a thich skin and soft sweet flesh.", "units", "1", "105", "2022-09-15 23:52:10"),
+("cciuf5f6i1e0e49j5750", "Cashew Milk", "Creamy milk-like drink", "milliliters", "100", "23", "2022-09-15 11:11:11"),
+("cciufd76i1e0ea44drqg", "Stevia", "Sugar substitute", "grams", "100", "2", "2022-09-14 22:22:22"),
+("cciufqn6i1e0faaqor4g", "Chocolate Protein Powder", "Protein", "grams", "25", "110", "2022-09-15 14:32:20"),
+("cciug9v6i1e0h9q4e570", "Brown Rice", "Yummy", "grams", "100", "375", "2022-09-14 20:12:15"),
+("cciughv6i1e0i77h6vcg", "Chicken Breast", "Protein", "grams", "100", "165", "2022-09-15 19:53:42"),
+("cciugvv6i1e0ip637jpg", "Olive Oil", "Oil", "milliliters", "100", "900", "2022-09-16 15:32:14"),
+("cciuhfv6i1e0jaucp6k0", "Sugar", "Sugar", "grams", "100", "387", "2022-09-15 05:42:16"),
+("cciuhj76i1e0jhb8uasg", "Salt", "Salt", "grams", "100", "0", "2022-09-15 03:52:10"),
+("cciuibn6i1e0kff2evfg", "Apple", "Yummy", "units", "1", "95", "2022-09-15 00:30:12"),
+("cciulu76i1e0vjpd3i2g", "Nestle Fitness Cereal", "Bad", "grams", "100", "379", "2022-09-15 18:52:19"),
+("cciumsn6i1e11lv61jm0", "Cocumber Spread", "Yummy", "grams", "100", "50", "2022-09-15 09:52:10"),
+("cciunif6i1e12b5egfp0", "Rice cake", "Rice", "units", "1", "20", "2022-09-15 06:59:10"),
+("cciuo7n6i1e13guo332g", "Turkey hot smoked fillet", "Yummy", "grams", "100", "95", "2022-09-15 05:52:10");
 
 
 CREATE TABLE `recipes` (
 	`id` VARCHAR(20) NOT NULL,
-	`user_id` VARCHAR(20),
+	`user_id` VARCHAR(20) NULL,
 	`name` VARCHAR(255) NOT NULL,
+	`image_url` VARCHAR(1023) NULL,
 	`description` VARCHAR(1023) NOT NULL,
 	`created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	PRIMARY KEY (`id`),
@@ -80,8 +83,9 @@ INSERT INTO `recipe_products` (`recipe_id`, `product_id`, `quantity`) VALUES
 
 CREATE TABLE `plans` (
 	`id` VARCHAR(20) NOT NULL,
-	`user_id` VARCHAR(20),
+	`user_id` VARCHAR(20) NULL,
 	`name` VARCHAR(255) NOT NULL,
+	`image_url` VARCHAR(1023) NULL,
 	`description` VARCHAR(1023) NOT NULL,
 	`created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	PRIMARY KEY (`id`),

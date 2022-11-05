@@ -38,6 +38,12 @@ type ProductCore struct {
 	// Name specifies the name of the product.
 	Name string `json:"name"`
 
+	// ImageURL specifies the image url for the recipe.
+	ImageURL string `json:"image_url"`
+
+	// Description provides a brief description of the product.
+	Description string `json:"description"`
+
 	// Serving specifies the serving information of the product.
 	Serving Serving `json:"serving"`
 }
@@ -58,6 +64,10 @@ type Serving struct {
 func (pc *ProductCore) Validate() *apierr.Error {
 	if pc.Name == "" {
 		return apierr.InvalidAttribute("name", "cannot be empty")
+	}
+
+	if pc.Description == "" {
+		return apierr.InvalidAttribute("description", "cannot be empty")
 	}
 
 	switch pc.Serving.Type {

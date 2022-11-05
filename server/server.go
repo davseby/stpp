@@ -89,6 +89,11 @@ func (s *Server) router() chi.Router {
 	r.Post("/login", s.Login)
 	r.Post("/register", s.Register)
 
+	r.Route("/self", func(sr chi.Router) {
+		sr.Use(s.authorize(false))
+		sr.Get("/", s.Self)
+	})
+
 	r.Route("/products", func(sr chi.Router) {
 		sr.Get("/", s.GetProducts)
 		sr.Get("/{productID}", s.GetProduct)
@@ -145,7 +150,10 @@ func (s *Server) router() chi.Router {
 
 	r.Get("/version", s.GetVersion)
 
-	return r
+	nr := chi.NewRouter()
+	nr.Mount("/api", r)
+
+	return nr
 }
 
 // GetVersion returns server version information.

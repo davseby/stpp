@@ -27,6 +27,9 @@ type PlanCore struct {
 	// Plan specifies the name of the plan.
 	Name string `json:"name"`
 
+	// ImageURL specifies the image url for the recipe.
+	ImageURL string `json:"image_url"`
+
 	// Description provides a brief description of the plan.
 	Description string `json:"description"`
 

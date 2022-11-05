@@ -61,6 +61,33 @@ func (s *Server) CreateAdminUser(w http.ResponseWriter, r *http.Request) {
 	s.respondJSON(w, usr)
 }
 
+// Self retrieves the user stored in the JWT.
+func (s *Server) Self(w http.ResponseWriter, r *http.Request) {
+	uid, aerr := s.extractContextUserID(r)
+	if aerr != nil {
+		aerr.Respond(w)
+		return
+	}
+
+	usr, err := db.GetUserByID(r.Context(), s.db, uid)
+	switch err {
+	case nil:
+		// OK.
+	case r.Context().Err():
+		apierr.Context().Respond(w)
+		return
+	case db.ErrNotFound:
+		apierr.NotFound("user").Respond(w)
+		return
+	default:
+		s.log.WithError(err).Error("fetching user by id")
+		apierr.Internal().Respond(w)
+		return
+	}
+
+	s.respondJSON(w, usr)
+}
+
 // GetUsers retrieves all users.
 func (s *Server) GetUsers(w http.ResponseWriter, r *http.Request) {
 	uu, err := db.GetUsers(r.Context(), s.db)
@@ -81,7 +108,7 @@ func (s *Server) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 // GetUser retrieves user by the user id.
 func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
-	uid, aerr := s.extractContextUserID(r)
+	uid, aerr := s.extractPathID(r, "userID")
 	if aerr != nil {
 		aerr.Respond(w)
 		return

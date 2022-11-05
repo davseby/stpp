@@ -38,6 +38,7 @@ func InsertPlan(
 			"plans.id":          pl.ID,
 			"plans.user_id":     pl.UserID,
 			"plans.name":        pl.Name,
+			"plans.image_url":   pl.ImageURL,
 			"plans.description": pl.Description,
 			"plans.created_at":  pl.CreatedAt,
 		}),
@@ -165,6 +166,7 @@ func UpdatePlanByID(
 		tx,
 		squirrel.Update("plans").SetMap(map[string]interface{}{
 			"plans.name":        pc.Name,
+			"plans.image_url":   pc.ImageURL,
 			"plans.description": pc.Description,
 		}).Where(
 			squirrel.Eq{"plans.id": id},
@@ -212,6 +214,7 @@ func selectPlans(
 			"plans.id",
 			"plans.user_id",
 			"plans.name",
+			"COALESCE(plans.image_url, '')",
 			"plans.description",
 			"plans.created_at",
 		).From("plans"),
@@ -228,6 +231,7 @@ func selectPlans(
 			&pl.ID,
 			&pl.UserID,
 			&pl.Name,
+			&pl.ImageURL,
 			&pl.Description,
 			&pl.CreatedAt,
 		); err != nil {

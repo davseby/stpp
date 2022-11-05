@@ -28,6 +28,8 @@ func InsertProduct(
 		squirrel.Insert("products").SetMap(map[string]interface{}{
 			"products.id":               product.ID,
 			"products.name":             product.Name,
+			"products.description":      product.Description,
+			"products.image_url":        product.ImageURL,
 			"products.serving_type":     product.Serving.Type,
 			"products.serving_size":     product.Serving.Size,
 			"products.serving_calories": product.Serving.Calories,
@@ -93,6 +95,8 @@ func UpdateProductByID(
 		ssc,
 		squirrel.Update("products").SetMap(map[string]interface{}{
 			"products.name":             pc.Name,
+			"products.description":      pc.Description,
+			"products.image_url":        pc.ImageURL,
 			"products.serving_type":     pc.Serving.Type,
 			"products.serving_size":     pc.Serving.Size,
 			"products.serving_calories": pc.Serving.Calories,
@@ -140,6 +144,8 @@ func selectProducts(
 		Select(
 			"products.id",
 			"products.name",
+			"COALESCE(products.image_url, '')",
+			"products.description",
 			"products.serving_type",
 			"products.serving_size",
 			"products.serving_calories",
@@ -157,6 +163,8 @@ func selectProducts(
 		if err := rows.Scan(
 			&product.ID,
 			&product.Name,
+			&product.ImageURL,
+			&product.Description,
 			&product.Serving.Type,
 			&product.Serving.Size,
 			&product.Serving.Calories,

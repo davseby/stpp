@@ -28,6 +28,9 @@ type RecipeCore struct {
 	// Name specifies the name of the recipe.
 	Name string `json:"name"`
 
+	// ImageURL specifies the image url for the recipe.
+	ImageURL string `json:"image_url"`
+
 	// Description provides a brief description of the recipe.
 	Description string `json:"description"`
 
