@@ -102,7 +102,7 @@ func Test_Server_Register(t *testing.T) {
 
 			server.Register(resp, req)
 			assert.Equal(t, test.StatusCode, resp.Code)
-			assert.Regexp(t, test.Response, string(resp.Body.Bytes()))
+			assert.Regexp(t, test.Response, resp.Body.String())
 		})
 	}
 }

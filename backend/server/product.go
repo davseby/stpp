@@ -38,6 +38,7 @@ func (s *Server) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("creating a new product")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -56,6 +57,7 @@ func (s *Server) GetProducts(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("fetching products")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -83,6 +85,7 @@ func (s *Server) GetProduct(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("fetching product by id")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -119,6 +122,7 @@ func (s *Server) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("updating product")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -146,6 +150,7 @@ func (s *Server) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("getting products by product id")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -159,6 +164,7 @@ func (s *Server) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("getting recipe products by product id")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -177,6 +183,7 @@ func (s *Server) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("deleting product by id")
 		apierr.Database().Respond(w)
+
 		return
 	}
 

@@ -42,6 +42,7 @@ func main() {
 	srv := server.NewServer(dbh, port, []byte(secret))
 
 	serverStop := make(chan struct{})
+
 	go func() {
 		logrus.Info("started web server")
 

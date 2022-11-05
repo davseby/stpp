@@ -279,11 +279,14 @@ func retrieveUsers(t *testing.T, dbh *sql.DB) []core.User {
 		).From("users"),
 	)
 	require.NoError(t, err)
+
 	defer rows.Close()
 
 	users := make([]core.User, 0)
+
 	for rows.Next() {
 		var user core.User
+
 		require.NoError(t, rows.Scan(
 			&user.ID,
 			&user.Name,

@@ -284,11 +284,14 @@ func retrieveProducts(t *testing.T, dbh *sql.DB) []core.Product {
 		).From("products"),
 	)
 	require.NoError(t, err)
+
 	defer rows.Close()
 
 	products := make([]core.Product, 0)
+
 	for rows.Next() {
 		var product core.Product
+
 		require.NoError(t, rows.Scan(
 			&product.ID,
 			&product.Name,

@@ -17,11 +17,11 @@ func InsertRecipe(
 	uid xid.ID,
 	rc core.RecipeCore,
 ) (*core.Recipe, error) {
-
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
+
 	defer tx.Rollback()
 
 	rec := core.Recipe{
@@ -71,7 +71,6 @@ func GetRecipes(
 	ctx context.Context,
 	qc squirrel.QueryerContext,
 ) ([]core.Recipe, error) {
-
 	return selectRecipes(
 		ctx,
 		qc,
@@ -87,7 +86,6 @@ func GetRecipesByUserID(
 	qc squirrel.QueryerContext,
 	uid xid.ID,
 ) ([]core.Recipe, error) {
-
 	return selectRecipes(
 		ctx,
 		qc,
@@ -105,7 +103,6 @@ func GetRecipeByID(
 	qc squirrel.QueryerContext,
 	id xid.ID,
 ) (*core.Recipe, error) {
-
 	rr, err := selectRecipes(
 		ctx,
 		qc,
@@ -134,11 +131,11 @@ func UpdateRecipeByID(
 	id xid.ID,
 	rc core.RecipeCore,
 ) (*core.Recipe, error) {
-
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
+
 	defer tx.Rollback()
 
 	if err := deleteRecipeProducts(
@@ -172,6 +169,9 @@ func UpdateRecipeByID(
 			squirrel.Eq{"recipes.id": id},
 		),
 	)
+	if err != nil {
+		return nil, err
+	}
 
 	if err := tx.Commit(); err != nil {
 		return nil, err
@@ -191,7 +191,6 @@ func DeleteRecipeByID(
 	ec squirrel.ExecerContext,
 	id xid.ID,
 ) error {
-
 	_, err := squirrel.ExecContextWith(
 		ctx,
 		ec,
@@ -199,6 +198,7 @@ func DeleteRecipeByID(
 			squirrel.Eq{"recipes.id": id},
 		),
 	)
+
 	return err
 }
 
@@ -208,7 +208,6 @@ func selectRecipes(
 	qc squirrel.QueryerContext,
 	dec func(squirrel.SelectBuilder) squirrel.SelectBuilder,
 ) ([]core.Recipe, error) {
-
 	rows, err := squirrel.QueryContextWith(ctx, qc, dec(squirrel.
 		Select(
 			"recipes.id",
@@ -222,11 +221,14 @@ func selectRecipes(
 	if err != nil {
 		return nil, err
 	}
+
 	defer rows.Close()
 
 	rr := make([]core.Recipe, 0)
+
 	for rows.Next() {
 		var rec core.Recipe
+
 		if err := rows.Scan(
 			&rec.ID,
 			&rec.UserID,
@@ -256,7 +258,6 @@ func GetRecipeProductsByProductID(
 	qc squirrel.QueryerContext,
 	id xid.ID,
 ) ([]core.RecipeProduct, error) {
-
 	return selectRecipeProducts(
 		ctx,
 		qc,
@@ -274,7 +275,6 @@ func getRecipeProductsByRecipeID(
 	qc squirrel.QueryerContext,
 	id xid.ID,
 ) ([]core.RecipeProduct, error) {
-
 	return selectRecipeProducts(
 		ctx,
 		qc,
@@ -292,7 +292,6 @@ func deleteRecipeProducts(
 	ec squirrel.ExecerContext,
 	rid xid.ID,
 ) error {
-
 	_, err := squirrel.ExecContextWith(
 		ctx,
 		ec,
@@ -300,6 +299,7 @@ func deleteRecipeProducts(
 			squirrel.Eq{"recipe_products.recipe_id": rid},
 		),
 	)
+
 	return err
 }
 
@@ -309,7 +309,6 @@ func upsertRecipeProduct(
 	ec squirrel.ExecerContext,
 	rp core.RecipeProduct,
 ) error {
-
 	_, err := squirrel.ExecContextWith(
 		ctx,
 		ec,
@@ -319,6 +318,7 @@ func upsertRecipeProduct(
 			"recipe_products.quantity":   rp.Quantity,
 		}).Suffix("ON DUPLICATE KEY UPDATE recipe_products.quantity = VALUES(recipe_products.quantity)"),
 	)
+
 	return err
 }
 
@@ -329,7 +329,6 @@ func selectRecipeProducts(
 	qc squirrel.QueryerContext,
 	dec func(squirrel.SelectBuilder) squirrel.SelectBuilder,
 ) ([]core.RecipeProduct, error) {
-
 	rows, err := squirrel.QueryContextWith(ctx, qc, dec(squirrel.
 		Select(
 			"recipe_products.recipe_id",
@@ -340,11 +339,14 @@ func selectRecipeProducts(
 	if err != nil {
 		return nil, err
 	}
+
 	defer rows.Close()
 
 	rps := make([]core.RecipeProduct, 0)
+
 	for rows.Next() {
 		var rp core.RecipeProduct
+
 		if err := rows.Scan(
 			&rp.RecipeID,
 			&rp.ProductID,

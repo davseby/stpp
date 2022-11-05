@@ -57,10 +57,10 @@ type Server struct {
 }
 
 // NewServer creates a fresh instance of the server.
-func NewServer(db *sql.DB, port string, secret []byte) *Server {
+func NewServer(dbh *sql.DB, port string, secret []byte) *Server {
 	s := &Server{
 		log:  logrus.New(),
-		db:   db,
+		db:   dbh,
 		auth: core.NewJWTAuth(secret),
 	}
 
@@ -234,6 +234,7 @@ func (s *Server) respondJSON(w http.ResponseWriter, obj any) {
 	if err != nil {
 		s.log.WithError(err).Error("marshaling response object")
 		apierr.Internal().Respond(w)
+
 		return
 	}
 
@@ -241,6 +242,7 @@ func (s *Server) respondJSON(w http.ResponseWriter, obj any) {
 	if err != nil {
 		s.log.WithError(err).Error("writing to client response data")
 		apierr.Internal().Respond(w)
+
 		return
 	}
 }

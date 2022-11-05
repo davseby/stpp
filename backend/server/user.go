@@ -45,6 +45,7 @@ func (s *Server) CreateAdminUser(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("fetching user by name")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -52,6 +53,7 @@ func (s *Server) CreateAdminUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		s.log.WithError(err).Error("generating bcrypt hash")
 		apierr.Internal().Respond(w)
+
 		return
 	}
 
@@ -71,6 +73,7 @@ func (s *Server) CreateAdminUser(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("creating a new user")
 		apierr.Internal().Respond(w)
+
 		return
 	}
 
@@ -98,6 +101,7 @@ func (s *Server) Self(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("fetching user by id")
 		apierr.Internal().Respond(w)
+
 		return
 	}
 
@@ -116,6 +120,7 @@ func (s *Server) GetUsers(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("fetching users")
 		apierr.Internal().Respond(w)
+
 		return
 	}
 
@@ -143,6 +148,7 @@ func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("fetching user by id")
 		apierr.Internal().Respond(w)
+
 		return
 	}
 
@@ -183,6 +189,7 @@ func (s *Server) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("fetching user by id for password update")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -196,6 +203,7 @@ func (s *Server) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("comparing bcrypt hash to a password")
 		apierr.Internal().Respond(w)
+
 		return
 	}
 
@@ -208,6 +216,7 @@ func (s *Server) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		s.log.WithError(err).Error("generating bcrypt password hash")
 		apierr.Internal().Respond(w)
+
 		return
 	}
 
@@ -221,6 +230,7 @@ func (s *Server) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("updating user password")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -271,6 +281,7 @@ func (s *Server) DeleteUser(super bool) func(http.ResponseWriter, *http.Request)
 			default:
 				s.log.WithError(err).Error("fetching user by id")
 				apierr.Database().Respond(w)
+
 				return
 			}
 
@@ -290,6 +301,7 @@ func (s *Server) DeleteUser(super bool) func(http.ResponseWriter, *http.Request)
 		default:
 			s.log.WithError(err).Error("creating a new user")
 			apierr.Database().Respond(w)
+
 			return
 		}
 
@@ -321,6 +333,7 @@ func (s *Server) Login(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("fetching user by name")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -334,6 +347,7 @@ func (s *Server) Login(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("comparing bcrypt hash to a password")
 		apierr.Internal().Respond(w)
+
 		return
 	}
 
@@ -341,6 +355,7 @@ func (s *Server) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		s.log.WithError(err).Error("creating a token")
 		apierr.Internal().Respond(w)
+
 		return
 	}
 
@@ -385,6 +400,7 @@ func (s *Server) Register(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("fetching user by name")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -392,6 +408,7 @@ func (s *Server) Register(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		s.log.WithError(err).Error("generating bcrypt password hash")
 		apierr.Internal().Respond(w)
+
 		return
 	}
 
@@ -411,6 +428,7 @@ func (s *Server) Register(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("creating a new user")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -418,6 +436,7 @@ func (s *Server) Register(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		s.log.WithError(err).Error("creating a token")
 		apierr.Internal().Respond(w)
+
 		return
 	}
 

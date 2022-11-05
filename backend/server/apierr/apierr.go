@@ -26,7 +26,7 @@ type Error struct {
 func (e *Error) Respond(w http.ResponseWriter) {
 	w.WriteHeader(e.statusCode)
 	if e.message != "" {
-		w.Write([]byte(e.message))
+		w.Write([]byte(e.message)) //nolint:errcheck // cannot recover from this.
 	}
 }
 

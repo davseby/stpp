@@ -48,6 +48,7 @@ func (s *Server) CreateRecipe(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("inserting a recipe")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -66,6 +67,7 @@ func (s *Server) GetRecipes(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("fetching recipes")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -90,6 +92,7 @@ func (s *Server) GetUserRecipes(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("fetching recipes")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -117,6 +120,7 @@ func (s *Server) GetRecipe(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("fetching recipe by id")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -157,6 +161,7 @@ func (s *Server) UpdateRecipe(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("fetching recipe by id")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -189,6 +194,7 @@ func (s *Server) UpdateRecipe(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("creating a new recipe")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -230,6 +236,7 @@ func (s *Server) DeleteRecipe(w http.ResponseWriter, r *http.Request) {
 		default:
 			s.log.WithError(err).Error("fetching recipe by id")
 			apierr.Database().Respond(w)
+
 			return
 		}
 
@@ -249,6 +256,7 @@ func (s *Server) DeleteRecipe(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("getting plan recipes by recipe id")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -267,6 +275,7 @@ func (s *Server) DeleteRecipe(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("deleting recipe by id")
 		apierr.Database().Respond(w)
+
 		return
 	}
 

@@ -19,6 +19,7 @@ func Test_InsertPlan(t *testing.T) {
 	cleanUpTables(t, dbh)
 
 	uid := xid.New()
+
 	mockUsers(t, dbh, core.User{
 		ID:           uid,
 		Name:         "1",
@@ -49,6 +50,7 @@ func Test_InsertPlan(t *testing.T) {
 	})
 
 	pid := xid.New()
+
 	mockProducts(t, dbh, core.Product{
 		ID: pid,
 		ProductCore: core.ProductCore{
@@ -62,6 +64,7 @@ func Test_InsertPlan(t *testing.T) {
 	})
 
 	rid := xid.New()
+
 	mockRecipes(t, dbh, core.Recipe{
 		ID: rid,
 		RecipeCore: core.RecipeCore{
@@ -84,7 +87,7 @@ func Test_InsertPlan(t *testing.T) {
 		},
 	}
 
-	t.Run("succesfully inserted a new plan", func(t *testing.T) {
+	t.Run("successfully inserted a new plan", func(t *testing.T) {
 		rec, err := InsertPlan(
 			context.Background(),
 			dbh,
@@ -104,6 +107,7 @@ func Test_GetPlans(t *testing.T) {
 
 	uid1 := xid.New()
 	uid2 := xid.New()
+
 	mockUsers(t, dbh, []core.User{
 		{
 			ID:           uid1,
@@ -122,6 +126,7 @@ func Test_GetPlans(t *testing.T) {
 	pid1 := xid.New()
 	pid2 := xid.New()
 	pid3 := xid.New()
+
 	mockProducts(t, dbh, []core.Product{
 		{
 			ID: pid1,
@@ -321,6 +326,7 @@ func Test_GetPlansByUserID(t *testing.T) {
 
 	uid1 := xid.New()
 	uid2 := xid.New()
+
 	mockUsers(t, dbh, []core.User{
 		{
 			ID:           uid1,
@@ -339,6 +345,7 @@ func Test_GetPlansByUserID(t *testing.T) {
 	pid1 := xid.New()
 	pid2 := xid.New()
 	pid3 := xid.New()
+
 	mockProducts(t, dbh, []core.Product{
 		{
 			ID: pid1,
@@ -537,6 +544,7 @@ func Test_GetPlanByID(t *testing.T) {
 	cleanUpTables(t, dbh)
 
 	uid1 := xid.New()
+
 	mockUsers(t, dbh, core.User{
 		ID:           uid1,
 		Name:         "1",
@@ -546,6 +554,7 @@ func Test_GetPlanByID(t *testing.T) {
 
 	pid1 := xid.New()
 	pid2 := xid.New()
+
 	mockProducts(t, dbh, []core.Product{
 		{
 			ID: pid1,
@@ -634,6 +643,7 @@ func Test_UpdatePlanByID(t *testing.T) {
 	cleanUpTables(t, dbh)
 
 	uid1 := xid.New()
+
 	mockUsers(t, dbh, core.User{
 		ID:           uid1,
 		Name:         "1",
@@ -643,6 +653,7 @@ func Test_UpdatePlanByID(t *testing.T) {
 
 	pid1 := xid.New()
 	pid2 := xid.New()
+
 	mockProducts(t, dbh, []core.Product{
 		{
 			ID: pid1,
@@ -670,6 +681,7 @@ func Test_UpdatePlanByID(t *testing.T) {
 
 	rid1 := xid.New()
 	rid2 := xid.New()
+
 	rr := []core.Recipe{
 		{
 			ID:        rid1,
@@ -713,6 +725,7 @@ func Test_UpdatePlanByID(t *testing.T) {
 	mockRecipes(t, dbh, rr...)
 
 	plid1 := xid.New()
+
 	pln := core.Plan{
 		ID:        plid1,
 		CreatedAt: time.Now().UTC().Truncate(time.Second),
@@ -757,6 +770,7 @@ func Test_DeletePlanByID(t *testing.T) {
 	cleanUpTables(t, dbh)
 
 	uid1 := xid.New()
+
 	mockUsers(t, dbh, core.User{
 		ID:           uid1,
 		Name:         "1",
@@ -766,6 +780,7 @@ func Test_DeletePlanByID(t *testing.T) {
 
 	pid1 := xid.New()
 	pid2 := xid.New()
+
 	mockProducts(t, dbh, []core.Product{
 		{
 			ID: pid1,
@@ -792,6 +807,7 @@ func Test_DeletePlanByID(t *testing.T) {
 	}...)
 
 	rid1 := xid.New()
+
 	rcp := core.Recipe{
 		ID:        rid1,
 		CreatedAt: time.Now().UTC().Truncate(time.Second),
@@ -812,6 +828,7 @@ func Test_DeletePlanByID(t *testing.T) {
 	mockRecipes(t, dbh, rcp)
 
 	plid1 := xid.New()
+
 	pln := core.Plan{
 		ID:        plid1,
 		CreatedAt: time.Now().UTC().Truncate(time.Second),
@@ -845,6 +862,7 @@ func Test_GetPlanRecipesByRecipeID(t *testing.T) {
 
 	uid1 := xid.New()
 	uid2 := xid.New()
+
 	mockUsers(t, dbh, []core.User{
 		{
 			ID:           uid1,
@@ -863,6 +881,7 @@ func Test_GetPlanRecipesByRecipeID(t *testing.T) {
 	pid1 := xid.New()
 	pid2 := xid.New()
 	pid3 := xid.New()
+
 	mockProducts(t, dbh, []core.Product{
 		{
 			ID: pid1,
@@ -902,6 +921,7 @@ func Test_GetPlanRecipesByRecipeID(t *testing.T) {
 	rid1 := xid.New()
 	rid2 := xid.New()
 	rid3 := xid.New()
+
 	rr := []core.Recipe{
 		{
 			ID:        rid1,
@@ -978,6 +998,7 @@ func Test_GetPlanRecipesByRecipeID(t *testing.T) {
 	plid1 := xid.New()
 	plid2 := xid.New()
 	plid3 := xid.New()
+
 	pp := []core.Plan{
 		{
 			ID:        plid1,
@@ -1108,11 +1129,14 @@ func retrievePlans(t *testing.T, dbh *sql.DB) []core.Plan {
 		).From("plans"),
 	)
 	require.NoError(t, err)
+
 	defer rows.Close()
 
 	pp := make([]core.Plan, 0)
+
 	for rows.Next() {
 		var pl core.Plan
+
 		require.NoError(t, rows.Scan(
 			&pl.ID,
 			&pl.UserID,
@@ -1140,11 +1164,14 @@ func retrievePlanRecipes(t *testing.T, dbh *sql.DB, pid xid.ID) []core.PlanRecip
 		}),
 	)
 	require.NoError(t, err)
+
 	defer rows.Close()
 
 	prs := make([]core.PlanRecipe, 0)
+
 	for rows.Next() {
 		var pr core.PlanRecipe
+
 		require.NoError(t, rows.Scan(
 			&pr.PlanID,
 			&pr.RecipeID,

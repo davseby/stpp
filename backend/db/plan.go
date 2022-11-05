@@ -17,11 +17,11 @@ func InsertPlan(
 	uid xid.ID,
 	pc core.PlanCore,
 ) (*core.Plan, error) {
-
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
+
 	defer tx.Rollback()
 
 	pl := core.Plan{
@@ -71,7 +71,6 @@ func GetPlans(
 	ctx context.Context,
 	qc squirrel.QueryerContext,
 ) ([]core.Plan, error) {
-
 	return selectPlans(
 		ctx,
 		qc,
@@ -87,7 +86,6 @@ func GetPlansByUserID(
 	qc squirrel.QueryerContext,
 	uid xid.ID,
 ) ([]core.Plan, error) {
-
 	return selectPlans(
 		ctx,
 		qc,
@@ -105,7 +103,6 @@ func GetPlanByID(
 	qc squirrel.QueryerContext,
 	id xid.ID,
 ) (*core.Plan, error) {
-
 	pp, err := selectPlans(
 		ctx,
 		qc,
@@ -134,11 +131,11 @@ func UpdatePlanByID(
 	id xid.ID,
 	pc core.PlanCore,
 ) (*core.Plan, error) {
-
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
+
 	defer tx.Rollback()
 
 	if err := deletePlanRecipes(
@@ -172,6 +169,9 @@ func UpdatePlanByID(
 			squirrel.Eq{"plans.id": id},
 		),
 	)
+	if err != nil {
+		return nil, err
+	}
 
 	if err := tx.Commit(); err != nil {
 		return nil, err
@@ -191,7 +191,6 @@ func DeletePlanByID(
 	ec squirrel.ExecerContext,
 	id xid.ID,
 ) error {
-
 	_, err := squirrel.ExecContextWith(
 		ctx,
 		ec,
@@ -199,6 +198,7 @@ func DeletePlanByID(
 			squirrel.Eq{"plans.id": id},
 		),
 	)
+
 	return err
 }
 
@@ -208,7 +208,6 @@ func selectPlans(
 	qc squirrel.QueryerContext,
 	dec func(squirrel.SelectBuilder) squirrel.SelectBuilder,
 ) ([]core.Plan, error) {
-
 	rows, err := squirrel.QueryContextWith(ctx, qc, dec(squirrel.
 		Select(
 			"plans.id",
@@ -225,6 +224,7 @@ func selectPlans(
 	defer rows.Close()
 
 	pp := make([]core.Plan, 0)
+
 	for rows.Next() {
 		var pl core.Plan
 		if err := rows.Scan(
@@ -256,7 +256,6 @@ func GetPlanRecipesByRecipeID(
 	qc squirrel.QueryerContext,
 	id xid.ID,
 ) ([]core.PlanRecipe, error) {
-
 	return selectPlanRecipes(
 		ctx,
 		qc,
@@ -274,7 +273,6 @@ func getPlanRecipesByPlanID(
 	qc squirrel.QueryerContext,
 	id xid.ID,
 ) ([]core.PlanRecipe, error) {
-
 	return selectPlanRecipes(
 		ctx,
 		qc,
@@ -292,7 +290,6 @@ func deletePlanRecipes(
 	ec squirrel.ExecerContext,
 	pid xid.ID,
 ) error {
-
 	_, err := squirrel.ExecContextWith(
 		ctx,
 		ec,
@@ -300,6 +297,7 @@ func deletePlanRecipes(
 			squirrel.Eq{"plan_recipes.plan_id": pid},
 		),
 	)
+
 	return err
 }
 
@@ -309,7 +307,6 @@ func upsertPlanRecipe(
 	ec squirrel.ExecerContext,
 	pr core.PlanRecipe,
 ) error {
-
 	_, err := squirrel.ExecContextWith(
 		ctx,
 		ec,
@@ -319,6 +316,7 @@ func upsertPlanRecipe(
 			"plan_recipes.quantity":  pr.Quantity,
 		}).Suffix("ON DUPLICATE KEY UPDATE plan_recipes.quantity = VALUES(plan_recipes.quantity)"),
 	)
+
 	return err
 }
 
@@ -329,7 +327,6 @@ func selectPlanRecipes(
 	qc squirrel.QueryerContext,
 	dec func(squirrel.SelectBuilder) squirrel.SelectBuilder,
 ) ([]core.PlanRecipe, error) {
-
 	rows, err := squirrel.QueryContextWith(ctx, qc, dec(squirrel.
 		Select(
 			"plan_recipes.plan_id",
@@ -340,9 +337,11 @@ func selectPlanRecipes(
 	if err != nil {
 		return nil, err
 	}
+
 	defer rows.Close()
 
 	prs := make([]core.PlanRecipe, 0)
+
 	for rows.Next() {
 		var pr core.PlanRecipe
 		if err := rows.Scan(

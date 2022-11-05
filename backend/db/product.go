@@ -15,7 +15,6 @@ func InsertProduct(
 	ec squirrel.ExecerContext,
 	pc core.ProductCore,
 ) (*core.Product, error) {
-
 	product := core.Product{
 		ID:          xid.New(),
 		CreatedAt:   time.Now(),
@@ -60,7 +59,6 @@ func GetProductByID(
 	qc squirrel.QueryerContext,
 	id xid.ID,
 ) (*core.Product, error) {
-
 	products, err := selectProducts(
 		ctx,
 		qc,
@@ -89,7 +87,6 @@ func UpdateProductByID(
 	id xid.ID,
 	pc core.ProductCore,
 ) (*core.Product, error) {
-
 	_, err := squirrel.ExecContextWith(
 		ctx,
 		ssc,
@@ -122,7 +119,6 @@ func DeleteProductByID(
 	ec squirrel.ExecerContext,
 	id xid.ID,
 ) error {
-
 	_, err := squirrel.ExecContextWith(
 		ctx,
 		ec,
@@ -130,6 +126,7 @@ func DeleteProductByID(
 			squirrel.Eq{"products.id": id},
 		),
 	)
+
 	return err
 }
 
@@ -139,7 +136,6 @@ func selectProducts(
 	qc squirrel.QueryerContext,
 	dec func(squirrel.SelectBuilder) squirrel.SelectBuilder,
 ) ([]core.Product, error) {
-
 	rows, err := squirrel.QueryContextWith(ctx, qc, dec(squirrel.
 		Select(
 			"products.id",
@@ -158,6 +154,7 @@ func selectProducts(
 	defer rows.Close()
 
 	products := make([]core.Product, 0)
+
 	for rows.Next() {
 		var product core.Product
 		if err := rows.Scan(

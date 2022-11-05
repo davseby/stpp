@@ -17,7 +17,6 @@ func InsertUser(
 	ph []byte,
 	adm bool,
 ) (*core.User, error) {
-
 	usr := core.User{
 		ID:           xid.New(),
 		Name:         name,
@@ -61,7 +60,6 @@ func GetUserByName(
 	qc squirrel.QueryerContext,
 	name string,
 ) (*core.User, error) {
-
 	users, err := selectUsers(
 		ctx,
 		qc,
@@ -88,7 +86,6 @@ func GetUserByID(
 	qc squirrel.QueryerContext,
 	id xid.ID,
 ) (*core.User, error) {
-
 	users, err := selectUsers(
 		ctx,
 		qc,
@@ -116,7 +113,6 @@ func UpdateUserPasswordByID(
 	id xid.ID,
 	ph []byte,
 ) error {
-
 	_, err := squirrel.ExecContextWith(
 		ctx,
 		ec,
@@ -126,6 +122,7 @@ func UpdateUserPasswordByID(
 			squirrel.Eq{"users.id": id},
 		),
 	)
+
 	return err
 }
 
@@ -135,7 +132,6 @@ func DeleteUserByID(
 	ec squirrel.ExecerContext,
 	id xid.ID,
 ) error {
-
 	_, err := squirrel.ExecContextWith(
 		ctx,
 		ec,
@@ -143,6 +139,7 @@ func DeleteUserByID(
 			squirrel.Eq{"users.id": id},
 		),
 	)
+
 	return err
 }
 
@@ -152,7 +149,6 @@ func selectUsers(
 	qc squirrel.QueryerContext,
 	dec func(squirrel.SelectBuilder) squirrel.SelectBuilder,
 ) ([]core.User, error) {
-
 	rows, err := squirrel.QueryContextWith(ctx, qc, dec(squirrel.
 		Select(
 			"users.id",
@@ -165,11 +161,14 @@ func selectUsers(
 	if err != nil {
 		return nil, err
 	}
+
 	defer rows.Close()
 
 	users := make([]core.User, 0)
+
 	for rows.Next() {
 		var user core.User
+
 		if err := rows.Scan(
 			&user.ID,
 			&user.Name,

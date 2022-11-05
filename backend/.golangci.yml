@@ -1,0 +1,74 @@
+run:
+  tests: true
+  allow-parallel-runners: false
+
+output:
+  sort-results: true
+
+linters:
+  enable:
+    - wastedassign
+    - unparam
+    - unused
+    - unconvert
+    - sqlclosecheck
+    - misspell
+    - godot
+    - gocritic
+    - whitespace
+    - wsl
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - asasalint
+    - bodyclose
+    - durationcheck
+    - errname
+    - goconst
+    - gofmt
+    - goimports
+    - makezero
+    - nilerr
+    - noctx
+    - prealloc
+
+linters-settings:
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
+      - performance
+      - style
+    disabled-checks:
+      - hugeParam
+      - sloppyReassign
+      - whyNoLint
+      - rangeValCopy 
+      - unnamedResult
+  wsl:
+    enforce-err-cuddling: true
+  whitespace:
+    multi-if: true
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+    exclude-functions:
+      - (*github.com/ory/dockertest/v3.Pool).Purge
+      - (*database/sql.Tx).Rollback
+      - (*database/sql.DB).Exec
+      - io.Copy(*bytes.Buffer)
+      - io/ioutil.ReadFile
+
+issues:
+  exclude-rules:
+    - text: block should not start with a whitespace # wsl and whitespace clash
+      linters:
+        - wsl
+    - text: if statements should only be cuddled with assignments # cant have a multi-return error and a if
+      linters:
+        - wsl
+    - text: switch statements should only be cuddled with variables switched # cant have a multi-return error and a switch
+      linters:
+        - wsl

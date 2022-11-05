@@ -48,6 +48,7 @@ func (s *Server) CreatePlan(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("inserting a plan")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -66,6 +67,7 @@ func (s *Server) GetPlans(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("fetching plans")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -90,6 +92,7 @@ func (s *Server) GetUserPlans(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("fetching plans")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -117,6 +120,7 @@ func (s *Server) GetPlan(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("fetching planby id")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -157,6 +161,7 @@ func (s *Server) UpdatePlan(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("fetching plan by id")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -189,6 +194,7 @@ func (s *Server) UpdatePlan(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("creating a new plan")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
@@ -230,6 +236,7 @@ func (s *Server) DeletePlan(w http.ResponseWriter, r *http.Request) {
 		default:
 			s.log.WithError(err).Error("fetching plan by id")
 			apierr.Database().Respond(w)
+
 			return
 		}
 
@@ -249,6 +256,7 @@ func (s *Server) DeletePlan(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.log.WithError(err).Error("deleting plan by id")
 		apierr.Database().Respond(w)
+
 		return
 	}
 
