@@ -1,0 +1,23 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap");
+
+$green: #36ad6a;
+$red: #d03050;
+$grey: #efeff5;
+
+body {
+	min-width: 600px;
+	font-family: "Roboto", sans-serif;
+}
+
+.page-title {
+	color: $green;
+	font-size: 25px;
+	font-weight: 600;
+	margin: 0 0 10px 0;
+}
+
+.divider {
+	margin: 5px 0;
+	height: 1px;
+	background-color: $grey;
+}
