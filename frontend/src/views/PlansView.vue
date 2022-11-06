@@ -39,10 +39,6 @@ const planRules = {
 		message: "Please input a plan name",
 		required: true,
 	},
-	image_url: {
-		message: "Please input a link to the image",
-		required: true,
-	},
 	recipes: {
 		message: "Please select at least 1 recipe",
 		validator(rule, value, callback) {
@@ -299,16 +295,11 @@ const searchedPlans = computed(() => {
 	<n-grid cols="3 800:4 1000:5 1200:6" x-gap="20px" y-gap="20px">
 		<n-grid-item v-for="(plan, index) in searchedPlans" :key="index" style="display: flex">
 			<n-card :title="plan.name" hoverable embedded>
-				<template #cover>
-					<img 
-						:src="plan.image_url == '' ? 'https://media.istockphoto.com/vectors/thumbnail-image-vector-graphic-vector-id1147544807?k=20&m=1147544807&s=612x612&w=0&h=pBhz1dkwsCMq37Udtp9sfxbjaMl27JUapoyYpQm0anc=' : plan.image_url"
-					>
-				</template>
-				<n-ellipsis line-clamp="3">
+				<n-ellipsis line-clamp="3" :tooltip="{width:200}">
 					{{ plan.description }}
 				</n-ellipsis>
 				<div>
-					<n-ellipsis line-clamp="5">
+					<n-ellipsis line-clamp="5" :tooltip="{width:200}">
 						<div v-for="(recipe, index) in plan.recipes" :key="index"> 
 							<div class="nutrition-header">{{ recipe.quantity }} {{ recipe.name }}</div>
 						</div>
@@ -360,23 +351,9 @@ const searchedPlans = computed(() => {
 			Create a new plan
 		</div>
 		<div class="modal-content">
-			<n-space justify="center">
-				<div class="image-wrapper">
-					<n-image
-						width="250"
-						object-fit="scale-down"
-						:src="createdPlan.image_url"
-						fallback-src="https://media.istockphoto.com/vectors/thumbnail-image-vector-graphic-vector-id1147544807?k=20&m=1147544807&s=612x612&w=0&h=pBhz1dkwsCMq37Udtp9sfxbjaMl27JUapoyYpQm0anc="
-					/>
-				</div>
-			</n-space>
-			<div class="divider"></div>
 			<n-form ref="createPlanFormRef" :model="createdPlan" :rules="planRules">
 				<n-form-item label="Name" path="name" required>
 					<n-input type="text" maxlength="255" show-count v-model:value="createdPlan.name" placeholder="Name of the plan" />
-				</n-form-item>
-				<n-form-item label="Image URL" path="image_url" required>
-					<n-input type="text" maxlength="1023" show-count v-model:value="createdPlan.image_url" placeholder="Image representation of the plan" />
 				</n-form-item>
 				<n-form-item label="Recipes" path="recipes" required>
 					<n-select max-tag-count="responsive" multiple v-model:value="createdPlanRecipes" @update:value="updateCreatedPlanRecipes" filterable :options="availableRecipes" />
@@ -404,25 +381,14 @@ const searchedPlans = computed(() => {
 		preset="dialog" 
 		:show-icon="false"
 	>
-		<div class="modal-title">
+		<div v-if="!viewPlan" class="modal-title">
 			Update {{ selectedPlan.name }}
 		</div>
+		<div v-else class="modal-title">
+			{{ selectedPlan.name }}
+		</div>
 		<div class="modal-content">
-			<n-space justify="center">
-				<div class="image-wrapper">
-					<n-image
-						width="250"
-						object-fit="scale-down"
-						:src="selectedPlan.image_url"
-						fallback-src="https://media.istockphoto.com/vectors/thumbnail-image-vector-graphic-vector-id1147544807?k=20&m=1147544807&s=612x612&w=0&h=pBhz1dkwsCMq37Udtp9sfxbjaMl27JUapoyYpQm0anc="
-					/>
-				</div>
-			</n-space>
-			<div class="divider"></div>
 			<n-form ref="updatePlanFormRef" :model="selectedPlan" :rules="planRules" :disabled="viewPlan">
-				<n-form-item label="Image URL" path="image_url" required>
-					<n-input type="text" maxlength="1023" show-count v-model:value="selectedPlan.image_url" placeholder="Image representation of the plan" />
-				</n-form-item>
 				<n-form-item v-if="!viewPlan" label="Recipes" path="recipes" required>
 					<n-select max-tag-count="responsive" multiple v-model:value="selectedPlanRecipes" @update:value="updateSelectedPlanRecipes" filterable :options="availableRecipes" />
 				</n-form-item>
@@ -456,13 +422,7 @@ const searchedPlans = computed(() => {
 	color: main.$green;
 	font-weight: 600;
 	font-size: 28px;
-}
-
-.modal-content {
-	.image-wrapper {
-		margin: 20px 0;
-		border: 1px solid main.$grey;
-	}
+	margin-bottom: 10px;
 }
 
 .nutrition-header {

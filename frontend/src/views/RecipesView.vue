@@ -304,11 +304,11 @@ const searchedRecipes = computed(() => {
 						:src="recipe.image_url == '' ? 'https://media.istockphoto.com/vectors/thumbnail-image-vector-graphic-vector-id1147544807?k=20&m=1147544807&s=612x612&w=0&h=pBhz1dkwsCMq37Udtp9sfxbjaMl27JUapoyYpQm0anc=' : recipe.image_url"
 					>
 				</template>
-				<n-ellipsis line-clamp="3">
+				<n-ellipsis line-clamp="3" :tooltip="{width:200}">
 					{{ recipe.description }}
 				</n-ellipsis>
 				<div>
-					<n-ellipsis line-clamp="5">
+					<n-ellipsis line-clamp="5" :tooltip="{width:200}">
 						<div v-for="(product, index) in recipe.products" :key="index"> 
 							<div class="nutrition-header">{{ product.name }}</div>
 							<div>{{ product.quantity }} {{ product.serving.type }}</div>
@@ -409,8 +409,11 @@ const searchedRecipes = computed(() => {
 		preset="dialog" 
 		:show-icon="false"
 	>
-		<div class="modal-title">
+		<div v-if="!viewRecipe" class="modal-title">
 			Update {{ selectedRecipe.name }}
+		</div>
+		<div v-else class="modal-title">
+			{{ selectedRecipe.name }}
 		</div>
 		<div class="modal-content">
 			<n-space justify="center">

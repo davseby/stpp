@@ -515,6 +515,7 @@ const handleRoute = (key: string) => {
 	font-size: 28px;
 	color: main.$green;
 	font-weight: 600;
+	margin-bottom: 10px;
 }
 
 .modal-content-title {
