@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref } from "vue"
+import { ref, computed, h } from "vue"
 import { useRouter, RouterLink } from "vue-router"
 import { useAuth } from "@/stores/useAuth"
 import { 
 	useNotification,
 	NForm,
 	NFormItem,
+	NDropdown,
 	NInput,
 	NSpace,
 	NButton,
@@ -19,12 +20,52 @@ import {
 	DocumentOutline as PlanIcon,
 	NutritionOutline as ProductIcon,
 	FastFoodOutline as RecipeIcon,
+	AppsOutline as HamburgerIcon,
 } from '@vicons/ionicons5'
 
 const loginFormRef = ref<Object>(null);
 const registerFormRef = ref<Object>(null);
 const passwordChangeFormRef = ref<Object>(null);
 const createAdminFormRef = ref<Object>(null);
+
+const renderIcon = (icon: Component) => {
+	return () => {
+		return h(NIcon, null, {
+			default: () => h(icon)
+		})
+	}
+}
+
+const options = computed(() => {
+	const values = [
+		{
+			label: 'Products',
+			key: 'products',
+			icon: renderIcon(ProductIcon),
+		},
+		{
+			label: 'Recipes',
+			key: 'recipes',
+			icon: renderIcon(RecipeIcon),
+		},
+		{
+			label: 'Plans',
+			key: 'plans',
+			icon: renderIcon(PlanIcon),
+		},
+		,
+	];
+	
+	if (useAuth().authorized && useAuth().user.admin) {
+		values.push({
+			label: 'Users',
+			key: 'users',
+			icon: renderIcon(UsersIcon),
+		})
+	}
+
+	return values;
+});
 
 const authRules = {
 	name: {
@@ -249,89 +290,102 @@ const logout = () => {
 		})
 	}
 }
+
+const handleRoute = (key: string) => {
+	router.push({
+		name: key,
+	})
+}
 </script>
 
 <template>
 	<n-space align="center" justify="space-between">
 		<div>
-			<router-link to="/products" class="router-link">
-				<n-button :focusable="false" text>
-					<template #icon>
-						<n-icon size="20px" color="#36ad6a">
-							<product-icon />
-						</n-icon>
-					</template>
-					Products
-				</n-button>
-			</router-link>
-			<router-link to="/recipes" class="router-link">
-				<n-button :focusable="false" text>
-					<template #icon>
-						<n-icon size="20px" color="#36ad6a">
-							<recipe-icon />
-						</n-icon>
-					</template>
-					Recipes
-				</n-button>
-			</router-link>
-			<router-link to="/plans" class="router-link">
-				<n-button :focusable="false" text>
-					<template #icon>
-						<n-icon size="20px" color="#36ad6a">
-							<plan-icon />
-						</n-icon>
-					</template>
-					Plans
-				</n-button>
-			</router-link>
-			<router-link v-if="useAuth().authorized && useAuth().user.admin" to="/users" class="router-link">
-				<n-button :focusable="false" text>
-					<template #icon>
-						<n-icon size="20px" color="#36ad6a">
-							<users-icon />
-						</n-icon>
-					</template>
-					Users
-				</n-button>
-			</router-link>
+			<div class="full-navigation">
+				<router-link to="/products" class="router-link">
+					<n-button :focusable="false" text>
+						<template #icon>
+							<n-icon size="20px" color="#36ad6a">
+								<product-icon />
+							</n-icon>
+						</template>
+						Products
+					</n-button>
+				</router-link>
+				<router-link to="/recipes" class="router-link">
+					<n-button :focusable="false" text>
+						<template #icon>
+							<n-icon size="20px" color="#36ad6a">
+								<recipe-icon />
+							</n-icon>
+						</template>
+						Recipes
+					</n-button>
+				</router-link>
+				<router-link to="/plans" class="router-link">
+					<n-button :focusable="false" text>
+						<template #icon>
+							<n-icon size="20px" color="#36ad6a">
+								<plan-icon />
+							</n-icon>
+						</template>
+						Plans
+					</n-button>
+				</router-link>
+				<router-link v-if="useAuth().authorized && useAuth().user.admin" to="/users" class="router-link">
+					<n-button :focusable="false" text>
+						<template #icon>
+							<n-icon size="20px" color="#36ad6a">
+								<users-icon />
+							</n-icon>
+						</template>
+						Users
+					</n-button>
+				</router-link>
+			</div>
+			<div class="partial-navigation">
+				<n-dropdown class="partial-navigation" :options="options" @select="handleRoute">
+					<n-icon size="30px" color="#36ad6a">
+						<hamburger-icon />
+					</n-icon>
+				</n-dropdown>
+			</div>
 		</div>
-		<div>
-			<div v-if="!useAuth().authorized" >
-				<n-button :focusable="false" @click="showLoginModal()" text>
-					<template #icon>
-						<n-icon size="20px" color="#36ad6a">
-							<logout-icon />
-						</n-icon>
-					</template>
-					Login
-				</n-button>
-				<n-button :focusable="false" @click="showRegisterModal()" style="margin-left:10px" text>
-					<template #icon>
-						<n-icon size="20px" color="#36ad6a">
-							<logout-icon />
-						</n-icon>
-					</template>
-					Register
-				</n-button>
-			</div>
-			<div v-else>
-				<n-button :focusable="false" @click="showProfileModal()" text>
-					<template #icon>
-						<n-icon size="20px" :color="useAuth().user.admin ? '#d03050' : '#36ad6a'">
-							<profile-icon />
-						</n-icon>
-					</template>
-					Profile ({{ useAuth().user.name }})
-				</n-button>
-				<n-button :focusable="false" @click="logout" style="margin-left:10px" text>
-					<template #icon>
-						<n-icon size="20px" color="#36ad6a">
-							<logout-icon />
-						</n-icon>
-					</template>
-					Logout
-				</n-button>
-			</div>
+		<div v-if="!useAuth().authorized" >
+			<n-button :focusable="false" @click="showLoginModal()" text>
+				<template #icon>
+					<n-icon size="20px" color="#36ad6a">
+						<logout-icon />
+					</n-icon>
+				</template>
+				Login
+			</n-button>
+			<n-button :focusable="false" @click="showRegisterModal()" style="margin-left:10px" text>
+				<template #icon>
+					<n-icon size="20px" color="#36ad6a">
+						<logout-icon />
+					</n-icon>
+				</template>
+				Register
+			</n-button>
+		</div>
+		<div v-else>
+			<n-button :focusable="false" @click="showProfileModal()" text>
+				<template #icon>
+					<n-icon size="20px" :color="useAuth().user.admin ? '#d03050' : '#36ad6a'">
+						<profile-icon />
+					</n-icon>
+				</template>
+				Profile ({{ useAuth().user.name }})
+			</n-button>
+			<n-button :focusable="false" @click="logout" style="margin-left:10px" text>
+				<template #icon>
+					<n-icon size="20px" color="#36ad6a">
+						<logout-icon />
+					</n-icon>
+				</template>
+				Logout
+			</n-button>
 		</div>
 	</n-space>
 	<div class="divider"></div>
@@ -440,6 +494,22 @@ const logout = () => {
 
 <style lang="scss" scoped>
 @use "../assets/main.scss";
+
+.partial-navigation {
+	display: none;
+}
+
+@media screen and (max-width: 700px) {
+	.full-navigation {
+		display: none;
+	}
+
+	.partial-navigation {
+		margin-top: 10px;
+		margin-left: 10px;
+		display: block;
+	}
+}
 
 .modal-title {
 	font-size: 28px;

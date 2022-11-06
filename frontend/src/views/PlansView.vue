@@ -3,7 +3,6 @@ import { ref, computed } from 'vue'
 import { useAuth } from "@/stores/useAuth"
 import { useRecipe } from "@/stores/useRecipe"
 import { usePlan } from "@/stores/usePlan"
-import axios from 'axios'
 
 import {
 	useNotification,
@@ -15,7 +14,6 @@ import {
 	NInputNumber,
 	NEllipsis,
 	NSelect,
-	NDivider,
 	NSpace,
 	NButton,
 	NIcon,

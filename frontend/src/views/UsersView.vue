@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { useAuth } from "@/stores/useAuth"
 import { useUser } from "@/stores/useUser"
-import axios from 'axios'
 
 import {
 	useNotification,
