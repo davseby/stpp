@@ -101,7 +101,7 @@ konteineryje.
 		}
 		```
 
-## Authorizacija
+## Autorizacija ir autentikacija
 
 - `POST` `/api/login` - Prisijungimas.
 	- Reikia prisijungti: Ne
