@@ -19,6 +19,10 @@ Programiškas projekto veikimo principas - platformą sudaro internetinė sąsaj
 (frontend) ir serverio aplikacija (backend). Internetinės sąsajos ir serverio 
 aplikacija komunikacija vyksta per RESTful API.
 
+Dizaino failas - https://github.com/davseby/stpp/blob/master/DESIGN.md
+
+Wireframe failas - https://github.com/davseby/stpp/blob/master/WIREFRAME.md
+
 Sistema turi tris roles:
 
 - Svečias
@@ -86,6 +90,7 @@ užklausas. Duomenų bazė bus paleista tame pačiame virtualiame serveryje, Doc
 konteineryje.
 
 ![File2](https://user-images.githubusercontent.com/58231312/190964890-c02acb5e-27cc-4dcf-af2a-aa9bfcaea533.png)
+
 
 # API aprašymas
 
