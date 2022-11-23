@@ -24,7 +24,7 @@ func Test_Server_Register(t *testing.T) {
 		}
 	}
 
-	dbh := dbFn(t)
+	dbh := _dbFn(t)
 	cleanUpTables(t, dbh)
 
 	usr := core.User{

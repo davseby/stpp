@@ -23,11 +23,11 @@ import (
 type contextKey int
 
 const (
-	// contextKeyUserID is used to store user id data.
-	contextKeyUserID contextKey = iota
+	// _contextKeyUserID is used to store user id data.
+	_contextKeyUserID contextKey = iota
 
-	// contextKeyAdmin is used to store admin flag data.
-	contextKeyAdmin
+	// _contextKeyAdmin is used to store admin flag data.
+	_contextKeyAdmin
 )
 
 // Authorizer should authorize requests.
@@ -213,10 +213,10 @@ func (s *Server) authorize(super bool) func(http.Handler) http.Handler {
 					context.WithValue(
 						context.WithValue(
 							r.Context(),
-							contextKeyUserID,
+							_contextKeyUserID,
 							id,
 						),
-						contextKeyAdmin,
+						_contextKeyAdmin,
 						admin,
 					),
 				),
@@ -277,7 +277,7 @@ func (s *Server) extractAuthorizationToken(r *http.Request) ([]byte, *apierr.Err
 
 // extractContextUserID extracts user id from the request context.
 func (s *Server) extractContextUserID(r *http.Request) (xid.ID, *apierr.Error) {
-	vid := r.Context().Value(contextKeyUserID)
+	vid := r.Context().Value(_contextKeyUserID)
 
 	id, ok := vid.(xid.ID)
 	if vid == nil || !ok {
@@ -290,7 +290,7 @@ func (s *Server) extractContextUserID(r *http.Request) (xid.ID, *apierr.Error) {
 
 // extractContextAdmin extracts admin flag from the request context.
 func (s *Server) extractContextAdmin(r *http.Request) (bool, *apierr.Error) {
-	vid := r.Context().Value(contextKeyAdmin)
+	vid := r.Context().Value(_contextKeyAdmin)
 
 	admin, ok := vid.(bool)
 	if vid == nil || !ok {

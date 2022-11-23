@@ -15,7 +15,7 @@ import (
 )
 
 func Test_InsertPlan(t *testing.T) {
-	dbh := dbFn(t)
+	dbh := _dbFn(t)
 	cleanUpTables(t, dbh)
 
 	uid := xid.New()
@@ -102,7 +102,7 @@ func Test_InsertPlan(t *testing.T) {
 }
 
 func Test_GetPlans(t *testing.T) {
-	dbh := dbFn(t)
+	dbh := _dbFn(t)
 	cleanUpTables(t, dbh)
 
 	uid1 := xid.New()
@@ -321,7 +321,7 @@ func Test_GetPlans(t *testing.T) {
 }
 
 func Test_GetPlansByUserID(t *testing.T) {
-	dbh := dbFn(t)
+	dbh := _dbFn(t)
 	cleanUpTables(t, dbh)
 
 	uid1 := xid.New()
@@ -540,7 +540,7 @@ func Test_GetPlansByUserID(t *testing.T) {
 }
 
 func Test_GetPlanByID(t *testing.T) {
-	dbh := dbFn(t)
+	dbh := _dbFn(t)
 	cleanUpTables(t, dbh)
 
 	uid1 := xid.New()
@@ -639,7 +639,7 @@ func Test_GetPlanByID(t *testing.T) {
 }
 
 func Test_UpdatePlanByID(t *testing.T) {
-	dbh := dbFn(t)
+	dbh := _dbFn(t)
 	cleanUpTables(t, dbh)
 
 	uid1 := xid.New()
@@ -766,7 +766,7 @@ func Test_UpdatePlanByID(t *testing.T) {
 }
 
 func Test_DeletePlanByID(t *testing.T) {
-	dbh := dbFn(t)
+	dbh := _dbFn(t)
 	cleanUpTables(t, dbh)
 
 	uid1 := xid.New()
@@ -857,7 +857,7 @@ func Test_DeletePlanByID(t *testing.T) {
 }
 
 func Test_GetPlanRecipesByRecipeID(t *testing.T) {
-	dbh := dbFn(t)
+	dbh := _dbFn(t)
 	cleanUpTables(t, dbh)
 
 	uid1 := xid.New()

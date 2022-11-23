@@ -14,7 +14,7 @@ import (
 )
 
 func Test_InsertUser(t *testing.T) {
-	dbh := dbFn(t)
+	dbh := _dbFn(t)
 	cleanUpTables(t, dbh)
 
 	t.Run("database returns an error", func(t *testing.T) {
@@ -47,7 +47,7 @@ func Test_InsertUser(t *testing.T) {
 }
 
 func Test_GetUsers(t *testing.T) {
-	dbh := dbFn(t)
+	dbh := _dbFn(t)
 	cleanUpTables(t, dbh)
 
 	uu := []core.User{
@@ -82,7 +82,7 @@ func Test_GetUsers(t *testing.T) {
 }
 
 func Test_GetUserByName(t *testing.T) {
-	dbh := dbFn(t)
+	dbh := _dbFn(t)
 	cleanUpTables(t, dbh)
 
 	uu := []core.User{
@@ -125,7 +125,7 @@ func Test_GetUserByName(t *testing.T) {
 }
 
 func Test_GetUserByID(t *testing.T) {
-	dbh := dbFn(t)
+	dbh := _dbFn(t)
 	cleanUpTables(t, dbh)
 
 	uu := []core.User{
@@ -168,7 +168,7 @@ func Test_GetUserByID(t *testing.T) {
 }
 
 func Test_UpdateUserPasswordByID(t *testing.T) {
-	dbh := dbFn(t)
+	dbh := _dbFn(t)
 	cleanUpTables(t, dbh)
 
 	usr := core.User{
@@ -192,7 +192,7 @@ func Test_UpdateUserPasswordByID(t *testing.T) {
 }
 
 func Test_DeleteUserByID(t *testing.T) {
-	dbh := dbFn(t)
+	dbh := _dbFn(t)
 	cleanUpTables(t, dbh)
 
 	usr := core.User{
@@ -214,7 +214,7 @@ func Test_DeleteUserByID(t *testing.T) {
 }
 
 func Test_selectUsers(t *testing.T) {
-	dbh := dbFn(t)
+	dbh := _dbFn(t)
 	cleanUpTables(t, dbh)
 
 	uu := []core.User{

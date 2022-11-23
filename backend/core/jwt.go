@@ -12,11 +12,11 @@ import (
 )
 
 const (
-	// jwtIssuer specifies the jwtIssuer of the JWT tokens.
-	jwtIssuer = "foodie"
+	// _jwtIssuer specifies the _jwtIssuer of the JWT tokens.
+	_jwtIssuer = "foodie"
 
-	// jwtExpiresAfter specifies how long the JWT tokens should last.
-	jwtExpiresAfter = time.Hour * 24
+	// _jwtExpiresAfter specifies how long the JWT tokens should last.
+	_jwtExpiresAfter = time.Hour * 24
 )
 
 // JWTAuthorizer authorizes based on JWT.
@@ -38,11 +38,11 @@ func (ja *JWTAuthorizer) Issue(id xid.ID, admin bool, tstamp time.Time) ([]byte,
 	token := jws.NewJWT(jws.Claims{}, crypto.SigningMethodHS256)
 
 	// core claims, defined in RFC.
-	token.Claims().Set("exp", fmt.Sprintf("%d", tstamp.Add(jwtExpiresAfter).Unix()))
+	token.Claims().Set("exp", fmt.Sprintf("%d", tstamp.Add(_jwtExpiresAfter).Unix()))
 	token.Claims().Set("iat", fmt.Sprintf("%d", tstamp.Unix()))
-	token.Claims().Set("iss", jwtIssuer)
+	token.Claims().Set("iss", _jwtIssuer)
 	token.Claims().Set("sub", id.String())
-	token.Claims().Set("aud", jwtIssuer)
+	token.Claims().Set("aud", _jwtIssuer)
 
 	// custom claim for permissions.
 	token.Claims().Set("adm", admin)

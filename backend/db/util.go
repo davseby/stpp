@@ -14,7 +14,7 @@ import (
 )
 
 //go:embed sql
-var migrations embed.FS
+var _migrations embed.FS
 
 // ErrNotFound is returned whenever an object in the database is not found.
 var ErrNotFound = errors.New("not found")
@@ -51,7 +51,7 @@ func Connect(dsn string) (*sql.DB, error) {
 // Migrate applies available migrations from sql folder to the
 // given database handler.
 func Migrate(dbh *sql.DB) error {
-	src, err := httpfs.New(http.FS(migrations), "sql")
+	src, err := httpfs.New(http.FS(_migrations), "sql")
 	if err != nil {
 		return err
 	}

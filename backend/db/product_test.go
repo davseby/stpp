@@ -15,7 +15,7 @@ import (
 )
 
 func Test_InsertProduct(t *testing.T) {
-	dbh := dbFn(t)
+	dbh := _dbFn(t)
 	cleanUpTables(t, dbh)
 
 	pc := core.ProductCore{
@@ -39,7 +39,7 @@ func Test_InsertProduct(t *testing.T) {
 }
 
 func Test_GetProducts(t *testing.T) {
-	dbh := dbFn(t)
+	dbh := _dbFn(t)
 	cleanUpTables(t, dbh)
 
 	pp := []core.Product{
@@ -89,7 +89,7 @@ func Test_GetProducts(t *testing.T) {
 }
 
 func Test_GetProductByID(t *testing.T) {
-	dbh := dbFn(t)
+	dbh := _dbFn(t)
 	cleanUpTables(t, dbh)
 
 	pp := []core.Product{
@@ -147,7 +147,7 @@ func Test_GetProductByID(t *testing.T) {
 }
 
 func Test_UpdateProductByID(t *testing.T) {
-	dbh := dbFn(t)
+	dbh := _dbFn(t)
 	cleanUpTables(t, dbh)
 
 	prd := core.Product{
@@ -175,7 +175,7 @@ func Test_UpdateProductByID(t *testing.T) {
 }
 
 func Test_DeleteProductByID(t *testing.T) {
-	dbh := dbFn(t)
+	dbh := _dbFn(t)
 	cleanUpTables(t, dbh)
 
 	prd := core.Product{
@@ -202,7 +202,7 @@ func Test_DeleteProductByID(t *testing.T) {
 }
 
 func Test_selectProduct(t *testing.T) {
-	dbh := dbFn(t)
+	dbh := _dbFn(t)
 	cleanUpTables(t, dbh)
 
 	pp := []core.Product{

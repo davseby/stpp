@@ -12,7 +12,7 @@ import (
 	dc "github.com/ory/dockertest/v3/docker"
 )
 
-var dbFn func(t *testing.T) *sql.DB
+var _dbFn func(t *testing.T) *sql.DB
 
 func TestMain(m *testing.M) {
 	cleanup := setupDB()
@@ -40,7 +40,7 @@ func cleanUpTables(t *testing.T, dbh *sql.DB) {
 func setupDB() (cleanup func()) {
 	var err error
 
-	dbFn = func(t *testing.T) *sql.DB {
+	_dbFn = func(t *testing.T) *sql.DB {
 		t.Fatal(err)
 		return nil
 	}
@@ -87,7 +87,7 @@ func setupDB() (cleanup func()) {
 	dbh.Exec("DELETE FROM products")
 	dbh.Exec("DELETE FROM users")
 
-	dbFn = func(t *testing.T) *sql.DB {
+	_dbFn = func(t *testing.T) *sql.DB {
 		return dbh
 	}
 
