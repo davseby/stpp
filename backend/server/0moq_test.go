@@ -5,9 +5,10 @@ package server
 
 import (
 	"foodie/server/apierr"
-	"github.com/rs/xid"
 	"sync"
 	"time"
+
+	"github.com/rs/xid"
 )
 
 // Ensure, that AuthorizerMock does implement Authorizer.

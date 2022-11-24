@@ -47,7 +47,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				}
 
 				if !strings.HasPrefix(name.Name, prefix) {
-					pass.Reportf(node.Pos(), "%q name is not prefixed with %q", name.Name, f.Name.Name)
+					pass.Reportf(node.Pos(), "%q name is not prefixed with %q", name.Name, prefix)
 				}
 			}
 
