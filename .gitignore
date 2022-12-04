@@ -1,3 +1,4 @@
 backend/main
+backend/scripts/dir/**
 frontend/dist
 frontend/node_modules

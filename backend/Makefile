@@ -1,5 +1,6 @@
 build:
 	GOOS=linux GOARCH=amd64 go build ./cmd/main.go
+	cp main ./scripts/dir/
 
 up:
 	docker-compose up -d

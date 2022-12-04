@@ -75,7 +75,7 @@ func GetRecipes(
 		ctx,
 		qc,
 		func(sb squirrel.SelectBuilder) squirrel.SelectBuilder {
-			return sb
+			return sb.Limit(100)
 		},
 	)
 }

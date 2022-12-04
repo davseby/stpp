@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	"github.com/rs/xid"
 	"github.com/sirupsen/logrus"
 )
@@ -152,6 +153,7 @@ func (s *Server) router() chi.Router {
 
 	nr := chi.NewRouter()
 	nr.Mount("/api", r)
+	nr.Mount("/debug", middleware.Profiler())
 
 	return nr
 }
